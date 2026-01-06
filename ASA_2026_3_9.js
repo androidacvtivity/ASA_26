@@ -288,6 +288,70 @@ function validate64_111(values) {
 
 //--- Validari ASA 23 -----
 
+
+// 64-112 (ERROR)
+// ASA - CAP.1: Dacă este completat r.112 (col.1 > 0),
+// atunci în CAP.4 trebuie să existe cel puțin un CAEM-2 din lista permisă.
+function validate64_112(values) {
+
+    function toNum(v) {
+        if (v === null || v === undefined) return 0;
+        var s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Condiția: CAP.1 r.112 col.1 completat
+    var r112 = toNum(values.CAP1_R112_C1);
+    if (r112 <= 0) return;
+
+    // Lista exactă CAEM2 (coduri)
+    var allowed = [
+        '3514', '3523', '4511', '4519', '4531', '4540',
+        '4621', '4622', '4623', '4624',
+        '4631', '4632', '4633', '4634', '4635', '4636', '4637', '4638', '4639',
+        '4641', '4642', '4643', '4644', '4645', '4646', '4647', '4648', '4649',
+        '4651', '4652',
+        '4661', '4662', '4663', '4664', '4665', '4666', '4669',
+        '4671', '4672', '4673', '4674', '4675', '4676', '4677',
+        '4690'
+    ];
+
+    // Set pentru verificare rapidă
+    var allowedSet = {};
+    for (var i = 0; i < allowed.length; i++) allowedSet[allowed[i]] = true;
+
+    // CAP4: CAEM din C32 (select) sau C31 (input)
+    var arr = [];
+    if (values.CAP4_R_C32 && values.CAP4_R_C32.length) arr = values.CAP4_R_C32;
+    else if (values.CAP4_R_C31 && values.CAP4_R_C31.length) arr = values.CAP4_R_C31;
+
+    // normalizează: "G4621" / "D3514" / "4621" => "4621"
+    function normalizeCaem(v) {
+        return String(v || '').trim().replace(/[^\d]/g, '');
+    }
+
+    var found = false;
+    for (var j = 0; j < arr.length; j++) {
+        var code = normalizeCaem(arr[j]);
+        if (code && allowedSet[code]) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        webform.errors.push({
+            fieldName: "CAP4_R_C31",
+            msg: Drupal.t(
+                "Cod eroare: 64-112, Dacă CAP.1 r.112 este completat, atunci în CAP.4 trebuie să existe un CAEM-2 permis (3514, 3523, 4511, 4519, 4531, 4540, 4621-4690)."
+            )
+        });
+    }
+}
+
+//--- Main validator ASA 23 -----
+
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
@@ -300,6 +364,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
     validate64_103(values);
     validate64_102(values);
     validate64_111(values);
+    validate64_112(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),

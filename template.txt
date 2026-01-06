@@ -223,3 +223,59 @@ Iti trimit varianta aceste validari in SQL - din alta sisteme informationala
 
 
 
+
+Creaza validarea errors  64-112	 CAP.1 Dacă sunt completate rd. 112  în CAP.4 trebuie să fie un CAEM și anume  3514, 3523, 451, 4531, 454, 462-469
+
+  functie submit. 
+
+    
+
+
+
+Lista de caem2 
+
+3514
+3523
+4511
+4519
+4531
+4540
+4621
+4622
+4623
+4624
+4631
+4632
+4633
+4634
+4635
+4636
+4637
+4638
+4639
+4641
+4642
+4643
+4644
+4645
+4646
+4647
+4648
+4649
+4651
+4652
+4661
+4662
+4663
+4664
+4665
+4666
+4669
+4671
+4672
+4673
+4674
+4675
+4676
+4677
+4690
