@@ -84,20 +84,26 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
 
+    var allowedCFOJ = ['500', '510', '520', '620', '690'];
 
-    if (cfpNr == '12' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '590' || cfojNr == '690' || cfojNr == '880' || cfojNr == '960')) {
+    if (cfpNr == '12' && allowedCFOJ.indexOf(cfojNr) === -1) {
         webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.01, Daca CFP = 12, atunci CFOJ = 500, 510, 520, 530, 590, 690, 880, 960')
+            fieldName: 'TITLU_R1_C31',
+            msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
         });
     }
 
-    if (cfpNr == '13' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '620' || cfojNr == '690' || cfojNr == '880' || cfojNr == '960')) {
+
+
+    var allowedCFOJ = ['500', '510', '520', '620', '690'];
+
+    if (cfpNr == '13' && allowedCFOJ.indexOf(cfojNr) === -1) {
         webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.02, Daca CFP = 13. atunci CFOJ = 500, 510, 520, 530, 620, 690, 880, 960')
+            fieldName: 'TITLU_R1_C31',
+            msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
         });
     }
+
 
     if ((cfpNr == '15' || cfpNr == '16' || cfpNr == '18') &&
         !(cfojNr == '420' || cfojNr == '430' || cfojNr == '440' || cfojNr == '450' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
