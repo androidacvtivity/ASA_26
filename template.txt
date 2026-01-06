@@ -210,5 +210,16 @@ caem_select		text
 
 
 
-Creaza validarea errors 64-103	CAP 2.1 2100 col.1 = CAP 2  220 COL1  + 240 COL2 
+Creaza validarea errors  64-102	CAP 2.1 col.1 ≥ col 2 + col. 3 + col.4 
  sa fie float cu o zecimala dupa virgula - functie submit  
+pe toate randurile 
+
+
+Creaza validarea errors  64-111	ASA - CAP.1 Dacă sunt completate rd. 111  în CAP.4 trebuie să fie un CAEM și anume G451, 4532, 454, 47,3514,3523
+  functie submit  
+
+
+Iti trimit varianta aceste validari in SQL - din alta sisteme informationala 
+
+
+

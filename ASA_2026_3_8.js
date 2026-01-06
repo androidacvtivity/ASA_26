@@ -171,8 +171,123 @@ function validate_CFP_vs_Cfoj_ASA23(values) {
     }
 }
 
+//--- Validari ASA 23 -----
+
+// 64-102 (ERROR)
+// CAP 2.1: pentru fiecare rând -> col.1 ≥ col.2 + col.3 + col.4
+// (float cu 1 zecimală)
+function validate64_102(values) {
+
+    // colectăm dinamic toate câmpurile CAP21_Rxxxx_[1..4]_C1
+    var rows = {}; // { "2101": {1:Decimal,2:Decimal,3:Decimal,4:Decimal}, ... }
+
+    Object.keys(values || {}).forEach(function (k) {
+        var m = /^CAP21_R(\d+)_(\d)_C1$/.exec(k);
+        if (!m) return;
+
+        var r = m[1];
+        var c = parseInt(m[2], 10); // 1..4
+
+        if (c < 1 || c > 4) return;
+
+        if (!rows[r]) rows[r] = {};
+
+        // rotunjim la 1 zecimală
+        rows[r][c] = Decimal(values[k] || 0).toDecimalPlaces(1);
+    });
+
+    Object.keys(rows).forEach(function (r) {
+        var col1 = (rows[r][1] !== undefined) ? rows[r][1] : Decimal(0).toDecimalPlaces(1);
+        var col2 = (rows[r][2] !== undefined) ? rows[r][2] : Decimal(0).toDecimalPlaces(1);
+        var col3 = (rows[r][3] !== undefined) ? rows[r][3] : Decimal(0).toDecimalPlaces(1);
+        var col4 = (rows[r][4] !== undefined) ? rows[r][4] : Decimal(0).toDecimalPlaces(1);
+
+        var sum234 = col2.plus(col3).plus(col4).toDecimalPlaces(1);
+
+        // col.1 >= (col.2+col.3+col.4)  => eroare dacă col1 < sum234
+        if (col1.lessThan(sum234)) {
+            webform.errors.push({
+                fieldName: 'CAP21_R' + r + '_1_C1',
+                msg: Drupal.t(
+                    'Cod eroare: 64-102, CAP 2.1 (r.@r) col.1 (@c1) < col.2+col.3+col.4 (@sum)',
+                    {
+                        '@r': r,
+                        '@c1': col1.toFixed(1),
+                        '@sum': sum234.toFixed(1)
+                    }
+                )
+            });
+        }
+    });
+}
 
 //--- Validari ASA 23 -----
+// 64-111 (ERROR)
+// ASA - CAP.1: Dacă este completat r.111 (col.1 > 0),
+// atunci în CAP.4 trebuie să existe cel puțin un CAEM-2 din lista exactă (COL3).
+function validate64_111(values) {
+
+    function toNum(v) {
+        if (v === null || v === undefined) return 0;
+        var s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Condiția: CAP.1 r.111 col.1 completat
+    var r111 = toNum(values.CAP1_R111_C1);
+    if (r111 <= 0) return;
+
+    // Lista exactă (COL3)
+    var allowed = [
+        '3514', '3523', '4511', '4519', '4532', '4540',
+        '4711', '4719', '4721', '4722', '4723', '4724', '4725', '4726', '4729',
+        '4730', '4741', '4742', '4743',
+        '4751', '4752', '4753', '4754', '4759',
+        '4761', '4762', '4763', '4764', '4765',
+        '4771', '4772', '4773', '4774', '4775', '4776', '4777', '4778', '4779',
+        '4781', '4782', '4789', '4791', '4799'
+    ];
+
+    // Set pentru căutare rapidă
+    var allowedSet = {};
+    for (var i = 0; i < allowed.length; i++) allowedSet[allowed[i]] = true;
+
+    // CAP4: luăm CAEM din C32 (select) sau C31 (input) – cum ai în formular
+    var arr = [];
+    if (values.CAP4_R_C32 && values.CAP4_R_C32.length) arr = values.CAP4_R_C32;
+    else if (values.CAP4_R_C31 && values.CAP4_R_C31.length) arr = values.CAP4_R_C31;
+
+    // normalizează: din "G4711" / "D3514" / "4711" => "4711" / "3514"
+    function normalizeCaem(v) {
+        var s = String(v || '').trim();
+        // dacă vine cu literă (G/D), păstrăm doar cifrele
+        s = s.replace(/[^\d]/g, '');
+        return s;
+    }
+
+    var found = false;
+    for (var j = 0; j < arr.length; j++) {
+        var code = normalizeCaem(arr[j]);
+        if (code && allowedSet[code]) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        webform.errors.push({
+            fieldName: "CAP4_R_C31",
+            msg: Drupal.t(
+                "Cod eroare: 64-111, Dacă CAP.1 r.111 este completat, atunci în CAP.4 trebuie să existe un CAEM-2 din lista permisă (ex.: G451, 4532, 454, 47,3514,3523)."
+            )
+        });
+    }
+}
+
+
+//--- Validari ASA 23 -----
+
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
@@ -183,6 +298,8 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
     validate_CFP_vs_Cfoj_ASA23(values);
     validate64_103(values);
+    validate64_102(values);
+    validate64_111(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),
