@@ -1,0 +1,225 @@
+name	title	type
+ENT_NAME	Denumirea completa a contribuabilului	text
+CUATM	Codul localităţii (CUATM)	custom
+CAEM	Activitatea principală	custom
+STREET	Strada	text
+STREET_NR	Nr casei	text
+CUIIO	Codul CUIÎO	text
+IDNO	Codul fiscal	text
+HEAD	Conducătorul	text
+EXECUTOR	Executant	text
+EMAIL	e-mail	text
+YEAR	Anul de raportare	period_year
+nalogPeriodLetter	Perioada fiscală	period_type
+nalogPeriodType	Perioada fiscală 	period
+TITLU_R2_C31	Executant	text
+TITLU_R3_C31	Numar telefon	text
+TITLU_R4_C31	e-mail	text
+TITLU_R7_C31	Conducătorul	text
+TITLU_R5_C31	Forma de proprietate	custom
+TITLU_R1_C31	Forma organizatorico-juridică	custom
+CAP1_R100_C1	Capitol 1 Rînd. 100 col.1	float
+CAP1_R110_C1	Capitol 1 Rînd. 110 col.1	float
+CAP1_R111_C1	Capitol 1 Rînd. 111 col.1	float
+CAP1_R112_C1	Capitol 1 Rînd. 112 col.1	float
+CAP1_R120_C1	Capitol 1 Rînd. 120 col.1	float
+CAP1_R121_C1	Capitol 1 Rînd. 121 col.1	float
+CAP1_R122_C1	Capitol 1 Rînd. 122 col.1	float
+CAP1_R130_C1	Capitol 1 Rînd. 130 col.1	float
+CAP1_R140_C1	Capitol 1 Rînd. 140 col.1	float
+CAP1_R150_C1	Capitol 1 Rînd. 150 col.1	float
+CAP1_R151_C1	Capitol 1 Rînd. 151 col.1	float
+CAP1_R160_C1	Capitol 1 Rînd. 160 col.1	float
+CAP1_R170_C1	Capitol 1 Rînd. 170 col.1	float
+CAP1_R180_C1	Capitol 1 Rînd. 180 col.1	float
+CAP2_R200_C1	Capitol 2 Rînd. 200 col.1	float
+CAP2_R210_C1	Capitol 2 Rînd. 210 col.1	float
+CAP2_R220_C1	Capitol 2 Rînd. 220 col.1	float
+CAP2_R221_C1	Capitol 2 Rînd. 221 col.1	float
+CAP2_R222_C1	Capitol 2 Rînd. 222 col.1	float
+CAP2_R240_C1	Capitol 2 Rînd. 240 col.1	float
+CAP2_R241_C1	Capitol 2 Rînd. 241 col.1	float
+CAP2_R242_C1	Capitol 2 Rînd. 242 col.1	float
+CAP2_R243_C1	Capitol 2 Rînd. 243 col.1	float
+CAP2_R260_C1	Capitol 2 Rînd. 260 col.1	float
+CAP2_R270_C1	Capitol 2 Rînd. 270 col.1	float
+CAP2_R280_C1	Capitol 2 Rînd. 280 col.1	float
+CAP2_R290_C1	Capitol 2 Rînd. 290 col.1	float
+CAP2_R291_C1	Capitol 2 Rînd. 291 col.1	float
+CAP2_R2911_C1	Capitol 2 Rînd. 2911 col.1	float
+CAP2_R2912_C1	Capitol 2 Rînd. 2912 col.1	float
+CAP2_R292_C1	Capitol 2 Rînd. 292 col.1	float
+CAP2_R293_C1	Capitol 2 Rînd. 293 col.1	float
+CAP2_R2931_C1	Capitol 2 Rînd. 2931 col.1	float
+CAP2_R295_C1	Capitol 2 Rînd. 295 col.1	float
+CAP2_R296_C1	Capitol 2 Rînd. 296 col.1	float
+CAP2_R2961_C1	Capitol 2 Rînd. 2961 col.1	float
+CAP2_R2962_C1	Capitol 2 Rînd. 2962 col.1	float
+CAP2_R297_C1	Capitol 2 Rînd. 297 col.1	float
+CAP2_R300_C1	Capitol 2 Rînd. 300 col.1	float
+CAP2_R305_C1	Capitol 2 Rînd. 305 col.1	float
+CAP2_R310_C1	Capitol 2 Rînd. 310 col.1	float
+CAP2_R311_C1	Capitol 2 Rînd. 311 col.1	float
+CAP2_R312_C1	Capitol 2 Rînd. 312 col.1	float
+CAP21_R2100_1_C1	Capitol 2.1 Rînd. 2100 col.1	float
+CAP21_R2101_1_C1	Capitol 2.1 Rînd. 2101 col.1	float
+CAP21_R2101_2_C1	Capitol 2.1 Rînd. 2101 col.2	float
+CAP21_R2101_3_C1	Capitol 2.1 Rînd. 2101 col.3	float
+CAP21_R2102_1_C1	Capitol 2.1 Rînd. 2102 col.1	float
+CAP21_R2102_2_C1	Capitol 2.1 Rînd. 2102col.2	float
+CAP21_R2102_3_C1	Capitol 2.1 Rînd. 2102col.2	float
+CAP21_R2102_4_C1	Capitol 2.1 Rînd. 2102 col.4	float
+CAP21_R2103_1_C1	Capitol 2.1 Rînd. 2103 col.1	float
+CAP21_R2103_2_C1	Capitol 2.1 Rînd. 2103 col.2	float
+CAP21_R2103_3_C1	Capitol 2.1 Rînd. 2103 col.3	float
+CAP21_R2104_1_C1	Capitol 2.1 Rînd. 2104 col.1	float
+CAP21_R2104_2_C1	Capitol 2.1 Rînd. 2104 col.2	float
+CAP21_R2104_3_C1	Capitol 2.1 Rînd. 2104 col.3	float
+CAP21_R2104_4_C1	Capitol 2.1 Rînd. 2104 col.4	float
+CAP21_R2105_1_C1	Capitol 2.1 Rînd. 2105 col.1	float
+CAP21_R2105_2_C1	Capitol 2.1 Rînd. 2105 col.2	float
+CAP21_R2105_3_C1	Capitol 2.1 Rînd. 2105 col.3	float
+CAP21_R2106_1_C1	Capitol 2.1 Rînd. 2106 col.1	float
+CAP21_R2106_2_C1	Capitol 2.1 Rînd. 2106 col.2	float
+CAP21_R2106_3_C1	Capitol 2.1 Rînd. 2106 col.3	float
+CAP21_R2107_1_C1	Capitol 2.1 Rînd. 2107 col.1	float
+CAP21_R2107_2_C1	Capitol 2.1 Rînd. 2107 col.2	float
+CAP21_R2107_3_C1	Capitol 2.1 Rînd. 2107 col.3	float
+CAP21_R2108_1_C1	Capitol 2.1 Rînd. 2108 col.1	float
+CAP21_R2108_2_C1	Capitol 2.1 Rînd. 2108 col.2	float
+CAP21_R2108_3_C1	Capitol 2.1 Rînd. 2108 col.3	float
+CAP21_R2109_1_C1	Capitol 2.1 Rînd. 2109 col.1	float
+CAP21_R2109_2_C1	Capitol 2.1 Rînd. 2109 col.2	float
+CAP21_R2109_3_C1	Capitol 2.1 Rînd. 2109 col.3	float
+CAP21_R2110_1_C1	Capitol 2.1 Rînd. 2110 col.1	float
+CAP21_R2110_2_C1	Capitol 2.1 Rînd. 2110 col.2	float
+CAP21_R2110_3_C1	Capitol 2.1 Rînd. 2110 col.3	float
+CAP21_R2110_4_C1	Capitol 2.1 Rînd. 2110 col.4	float
+CAP21_R2111_1_C1	Capitol 2.1 Rînd. 2111 col.1	float
+CAP21_R2111_2_C1	Capitol 2.1 Rînd. 2111 col.2	float
+CAP21_R2111_3_C1	Capitol 2.1 Rînd. 2111 col.3	float
+CAP21_R2111_4_C1	Capitol 2.1 Rînd. 2111 col.4	float
+CAP21_R2112_1_C1	Capitol 2.1 Rînd. 2112 col.1	float
+CAP21_R2112_2_C1	Capitol 2.1 Rînd. 2112 col.2	float
+CAP21_R2112_3_C1	Capitol 2.1 Rînd. 2112 col.3	float
+CAP21_R2112_4_C1	Capitol 2.1 Rînd. 2112 col.4	float
+CAP21_R2113_1_C1	Capitol 2.1 Rînd. 2113 col.1	float
+CAP21_R2113_2_C1	Capitol 2.1 Rînd. 2113 col.2	float
+CAP21_R2113_3_C1	Capitol 2.1 Rînd. 2113 col.3	float
+CAP21_R2113_4_C1	Capitol 2.1 Rînd. 2113 col.4	float
+CAP21_R2114_1_C1	Capitol 2.1 Rînd. 2114 col.1	float
+CAP21_R2114_2_C1	Capitol 2.1 Rînd. 2114 col.2	float
+CAP21_R2114_3_C1	Capitol 2.1 Rînd. 2114 col.3	float
+CAP21_R2114_4_C1	Capitol 2.1 Rînd. 2114 col.4	float
+CAP21_R2115_1_C1	Capitol 2.1 Rînd. 2115 col.1	float
+CAP21_R2115_2_C1	Capitol 2.1 Rînd. 2115 col.2	float
+CAP21_R2115_3_C1	Capitol 2.1 Rînd. 2115 col.3	float
+CAP21_R2115_4_C1	Capitol 2.1 Rînd. 2115 col.4	float
+CAP21_R2116_1_C1	Capitol 2.1 Rînd. 2116 col.1	float
+CAP21_R2116_2_C1	Capitol 2.1 Rînd. 2116 col.2	float
+CAP21_R2116_3_C1	Capitol 2.1 Rînd. 2116 col.3	float
+CAP21_R2116_4_C1	Capitol 2.1 Rînd. 2116 col.4	float
+CAP21_R2117_1_C1	Capitol 2.1 Rînd. 2117 col.1	float
+CAP21_R2117_2_C1	Capitol 2.1 Rînd. 2117 col.2	float
+CAP21_R2117_3_C1	Capitol 2.1 Rînd. 2117 col.3	float
+CAP21_R2117_4_C1	Capitol 2.1 Rînd. 2117 col.4	float
+CAP21_R2118_1_C1	Capitol 2.1 Rînd. 2118 col.1	float
+CAP21_R2118_2_C1	Capitol 2.1 Rînd. 2118 col.2	float
+CAP21_R2118_3_C1	Capitol 2.1 Rînd. 2118 col.3	float
+CAP21_R2118_4_C1	Capitol 2.1 Rînd. 2118 col.4	float
+CAP21_R2119_1_C1	Capitol 2.1 Rînd. 2119 col.1	float
+CAP21_R2119_2_C1	Capitol 2.1 Rînd. 2119 col.2	float
+CAP21_R2119_3_C1	Capitol 2.1 Rînd. 2119 col.3	float
+CAP21_R2119_4_C1	Capitol 2.1 Rînd. 2119 col.4	float
+CAP21_R2120_1_C1	Capitol 2.1 Rînd. 2120 col.1	float
+CAP21_R2120_2_C1	Capitol 2.1 Rînd. 2120 col.2	float
+CAP21_R2120_3_C1	Capitol 2.1 Rînd. 2120 col.3	float
+CAP21_R2121_1_C1	Capitol 2.1 Rînd. 2121 col.1	float
+CAP21_R2121_2_C1	Capitol 2.1 Rînd. 2121 col.2	float
+CAP21_R2121_3_C1	Capitol 2.1 Rînd. 2121 col.3	float
+CAP21_R2121_4_C1	Capitol 2.1 Rînd. 2121 col.4	float
+CAP21_R2122_1_C1	Capitol 2.1 Rînd. 2122 col.1	float
+CAP21_R2123_1_C1	Capitol 2.1 Rînd. 2123 col.1	float
+CAP21_R2123_2_C1	Capitol 2.1 Rînd. 2123 col.2	float
+CAP21_R2123_3_C1	Capitol 2.1 Rînd. 2123 col.3	float
+CAP21_R2123_4_C1	Capitol 2.1 Rînd. 2123 col.4	float
+CAP21_R2124_1_C1	Capitol 2.1 Rînd. 2124 col.1	float
+CAP21_R2124_2_C1	Capitol 2.1 Rînd. 2124 col.2	float
+CAP21_R2124_3_C1	Capitol 2.1 Rînd. 2124 col.3	float
+CAP21_R2124_4_C1	Capitol 2.1 Rînd. 2124 col.4	float
+CAP21_R2125_1_C1	Capitol 2.1 Rînd. 2125 col.1	float
+CAP21_R2125_2_C1	Capitol 2.1 Rînd. 2125 col.2	float
+CAP21_R2125_3_C1	Capitol 2.1 Rînd. 2125 col.3	float
+CAP21_R2125_4_C1	Capitol 2.1 Rînd. 2125 col.4	float
+CAP21_R2126_1_C1	Capitol 2.1 Rînd. 2126 col.1	float
+CAP21_R2127_1_C1	Capitol 2.1 Rînd. 2127 col.1	float
+CAP21_R2127_2_C1	Capitol 2.1 Rînd. 2127 col.2	float
+CAP21_R2127_3_C1	Capitol 2.1 Rînd. 2127 col.3	float
+CAP21_R2127_4_C1	Capitol 2.1 Rînd. 2127 col.4	float
+CAP21_R2128_1_C1	Capitol 2.1 Rînd. 2128 col.1	float
+CAP21_R2128_2_C1	Capitol 2.1 Rînd. 2128 col.2	float
+CAP21_R2128_3_C1	Capitol 2.1 Rînd. 2128 col.3	float
+CAP21_R2128_4_C1	Capitol 2.1 Rînd. 2128 col.4	float
+CAP21_R2129_1_C1	Capitol 2.1 Rînd. 2129 col.1	float
+CAP21_R2130_1_C1	Capitol 2.1 Rînd. 2130 col.1	float
+CAP21_R2130_2_C1	Capitol 2.1 Rînd. 2130 col.2	float
+CAP21_R2130_3_C1	Capitol 2.1 Rînd. 2130 col.3	float
+CAP3_R320_C1	Capitol 3 Rînd. 320 col.1	float
+CAP3_R320_C2	Capitol 3 Rînd. 320 col.2	float
+CAP3_R330_C1	Capitol 3 Rînd. 330 col.1	float
+CAP3_R330_C2	Capitol 3 Rînd. 330 col.2	float
+CAP3_R340_C1	Capitol 3 Rînd. 340 col.1	float
+CAP3_R340_C2	Capitol 3 Rînd. 340 col.2	float
+CAP3_R350_C1	Capitol 3 Rînd. 350 col.1	float
+CAP3_R350_C2	Capitol 3 Rînd. 350 col.2	float
+CAP4_R400_C3	Tabel 4 Rînd. 400 col.1	float
+CAP4_R400_C4	Tabel 4 Rînd. 400 col.2	numeric
+CAP4_R400_C5	Tabel 4 Rînd. 400 col.3	float
+CAP4_R_CA	Tabel 4 col.A	numeric
+CAP4_R_C31	Tabel 4 col.B	text
+CAP4_R_C32	Tabel 4 col.C	text
+CAP4_R_C3	Tabel 4 col.1	float
+CAP4_R_C4	Tabel 4 col.2	numeric
+CAP4_R_C5	Tabel 4 col.3	float
+CAP5_R500_C8	Tabel 5 Rînd. 500 col.1	float
+CAP5_R500_C9	Tabel 5 Rînd. 500 col.2	float
+CAP5_R500_C10	Tabel 5 Rînd. 500 col.3	float
+CAP5_R_CA	Tabel 5 col.A	numeric
+CAP5_R_CB	Tabel 5 col.B	text
+CAP5_R_CC	Tabel 5 col.C	text
+CAP5_R_C1	Tabel 5 col.D, raion	text
+CAP5_R_C32	Tabel 5 col.D, Localitatea	text
+CAP5_R_C33	Tabel 5 col.D, Strada	text
+CAP5_R_C34	Tabel 5 col.D, Numar Casa	text
+CAP5_R_C35	Tabel 5 col.D, Numar Apartament	text
+CAP5_R_C36	Tabel 5 col.D, CUATM	text
+CAP5_R_C37	Tabel 5 col.F, CAEM-2	text
+CAP5_R_C8	Tabel 5 col.1	float
+CAP5_R_C9	Tabel 5 col.2	float
+CAP5_R_C10	Tabel 5 col.3	float
+CAP9_R900_C1	Capitol 9 Rînd. 900 col.1	float
+CAP9_R910_C1	Capitol 9 Rînd. 910 col.1	float
+CAP9_R920_C1	Capitol 9 Rînd. 920 col.1	float
+CAP9_R930_C1	Capitol 9 Rînd. 930 col.1	float
+CAP9_R940_C1	Capitol 9 Rînd. 940 col.1	float
+CAP9_R950_C1	Capitol 9 Rînd. 950 col.1	float
+CAP9_R960_C1	Capitol 9 Rînd. 960 col.1	float
+CAP9_R970_C1	Capitol 9 Rînd. 970 col.1	float
+CAP9_R980_C1	Capitol 9 Rînd. 980 col.1	numeric
+caem_select		text
+
+
+
+Creaza validarea errors  64-102	CAP 2.1 col.1 ≥ col 2 + col. 3 + col.4 
+ sa fie float cu o zecimala dupa virgula - functie submit  
+pe toate randurile 
+
+
+Creaza validarea errors  64-111	ASA - CAP.1 Dacă sunt completate rd. 111  în CAP.4 trebuie să fie un CAEM și anume G451, 4532, 454, 47,3514,3523
+  functie submit  
+
+
+Iti trimit varianta aceste validari in SQL - din alta sisteme informationala 
+
+
+

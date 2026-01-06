@@ -67,6 +67,42 @@ function set_caem_to_select(selector, valueCaem, keyCaem) {
 
 
 
+//---------------- Validari ASA 23 -----
+
+// 64-103 (ERROR)
+// CAP 2.1: r.2100 c.1 = CAP 2: r.220 c.1 + r.240 c.2  (valori float cu 1 zecimală)
+function validate64_103(values) {
+
+    // Stânga: Cap.2.1 r.2100 c.1
+    var left = Decimal(values.CAP21_R2100_1_C1 || 0).toDecimalPlaces(1);
+
+    // Dreapta: Cap.2 r.220 c.1
+    var r220 = Decimal(values.CAP2_R220_C1 || 0).toDecimalPlaces(1);
+
+    // Cap.2 r.240 c.2  (fallback: dacă nu există C2 în values, luăm C1 ca să nu crape)
+    var r240_raw = (typeof values.CAP2_R240_C2 !== "undefined")
+        ? values.CAP2_R240_C2
+        : values.CAP2_R240_C1;
+
+    var r240 = Decimal(r240_raw || 0).toDecimalPlaces(1);
+
+    var right = r220.plus(r240).toDecimalPlaces(1);
+
+    if (!left.equals(right)) {
+        webform.errors.push({
+            fieldName: 'CAP21_R2100_1_C1',
+            msg: Drupal.t(
+                'Cod eroare: 64-103, CAP 2.1 [r.2100 c.1 = @left] = CAP 2 [r.220 c.1 = @r220] + [r.240 c.2 = @r240]  => @right',
+                {
+                    '@left': left.toFixed(1),
+                    '@r220': r220.toFixed(1),
+                    '@r240': r240.toFixed(1),
+                    '@right': right.toFixed(1)
+                }
+            )
+        });
+    }
+}
 
 
 //--- Validari ASA 23 -----
@@ -135,8 +171,59 @@ function validate_CFP_vs_Cfoj_ASA23(values) {
     }
 }
 
+//--- Validari ASA 23 -----
+
+// 64-102 (ERROR)
+// CAP 2.1: pentru fiecare rând -> col.1 ≥ col.2 + col.3 + col.4
+// (float cu 1 zecimală)
+function validate64_102(values) {
+
+    // colectăm dinamic toate câmpurile CAP21_Rxxxx_[1..4]_C1
+    var rows = {}; // { "2101": {1:Decimal,2:Decimal,3:Decimal,4:Decimal}, ... }
+
+    Object.keys(values || {}).forEach(function (k) {
+        var m = /^CAP21_R(\d+)_(\d)_C1$/.exec(k);
+        if (!m) return;
+
+        var r = m[1];
+        var c = parseInt(m[2], 10); // 1..4
+
+        if (c < 1 || c > 4) return;
+
+        if (!rows[r]) rows[r] = {};
+
+        // rotunjim la 1 zecimală
+        rows[r][c] = Decimal(values[k] || 0).toDecimalPlaces(1);
+    });
+
+    Object.keys(rows).forEach(function (r) {
+        var col1 = (rows[r][1] !== undefined) ? rows[r][1] : Decimal(0).toDecimalPlaces(1);
+        var col2 = (rows[r][2] !== undefined) ? rows[r][2] : Decimal(0).toDecimalPlaces(1);
+        var col3 = (rows[r][3] !== undefined) ? rows[r][3] : Decimal(0).toDecimalPlaces(1);
+        var col4 = (rows[r][4] !== undefined) ? rows[r][4] : Decimal(0).toDecimalPlaces(1);
+
+        var sum234 = col2.plus(col3).plus(col4).toDecimalPlaces(1);
+
+        // col.1 >= (col.2+col.3+col.4)  => eroare dacă col1 < sum234
+        if (col1.lessThan(sum234)) {
+            webform.errors.push({
+                fieldName: 'CAP21_R' + r + '_1_C1',
+                msg: Drupal.t(
+                    'Cod eroare: 64-102, CAP 2.1 (r.@r) col.1 (@c1) < col.2+col.3+col.4 (@sum)',
+                    {
+                        '@r': r,
+                        '@c1': col1.toFixed(1),
+                        '@sum': sum234.toFixed(1)
+                    }
+                )
+            });
+        }
+    });
+}
 
 //--- Validari ASA 23 -----
+
+
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
@@ -146,6 +233,8 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
     validate_CFP_vs_Cfoj_ASA23(values);
+    validate64_103(values);
+    validate64_102(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),
