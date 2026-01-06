@@ -65,12 +65,87 @@ function set_caem_to_select(selector, valueCaem, keyCaem) {
     obj.change();
 }
 
+
+
+
+
+//--- Validari ASA 23 -----
+
+function validate_CFP_vs_Cfoj_ASA23(values) {
+    // CFOJ = TITLU_R1_C31 (primele 3 cifre)
+    // CFP  = TITLU_R5_C31 (primele 2 cifre)
+    var cfoj = (values.TITLU_R1_C31 || "").toString();
+    var cfp = (values.TITLU_R5_C31 || "").toString();
+
+    var cfojNr = cfoj.substring(0, 3);
+    var cfpNr = cfp.substring(0, 2);
+
+    // reguli (exact cum ai cerut)
+    var rules = [
+        {
+            cfp: ['12'],
+            allowed: ['500', '510', '520', '590', '690'],
+            errCode: 'A.02',
+            msg: 'Daca CFP = 12, atunci CFOJ = 500, 510, 520, 590, 690'
+        },
+        {
+            cfp: ['13'],
+            allowed: ['500', '510', '520', '620', '690'],
+            errCode: 'A.02',
+            msg: 'Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690'
+        },
+        {
+            cfp: ['15', '16', '18'],
+            allowed: ['420', '430', '440', '450', '500', '510', '520', '530', '540', '541', '550', '560', '690', '993'],
+            errCode: 'A.03',
+            msg: 'Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 993'
+        },
+        {
+            cfp: ['20'],
+            allowed: ['500', '510', '520', '530', '690'],
+            errCode: 'A.04',
+            msg: 'Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690'
+        },
+        {
+            cfp: ['28'],
+            allowed: ['430', '440', '500', '510', '520', '530', '540', '550', '560', '690'],
+            errCode: 'A.05',
+            msg: 'Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690'
+        },
+        {
+            cfp: ['23', '24', '25', '26'],
+            allowed: ['500', '510', '520', '530', '540', '550', '560', '690', '996'],
+            errCode: 'A.06',
+            msg: 'Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996'
+        }
+    ];
+
+    for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+
+        if (r.cfp.indexOf(cfpNr) !== -1) {
+            if (r.allowed.indexOf(cfojNr) === -1) {
+                webform.errors.push({
+                    fieldName: 'TITLU_R1_C31',
+                    msg: Drupal.t('Cod eroare: ' + r.errCode + ', ' + r.msg)
+                });
+            }
+            break; // o singură regulă se aplică
+        }
+    }
+}
+
+
+//--- Validari ASA 23 -----
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
         cfojNr = cfoj.substring(0, 3),
         cfp = values.TITLU_R5_C31,
         cfpNr = cfp.substring(0, 2);
+
+
+    validate_CFP_vs_Cfoj_ASA23(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),
@@ -84,56 +159,62 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
 
+    // var allowedCFOJ = ['500', '510', '520', '620', '690'];
 
-    if (cfpNr == '12' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '590' || cfojNr == '690' || cfojNr == '880' || cfojNr == '960')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.01, Daca CFP = 12, atunci CFOJ = 500, 510, 520, 530, 590, 690, 880, 960')
-        });
-    }
+    // if (cfpNr == '12' && allowedCFOJ.indexOf(cfojNr) === -1) {
+    //     webform.errors.push({
+    //         fieldName: 'TITLU_R1_C31',
+    //         msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
+    //     });
+    // }
 
-    if (cfpNr == '13' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '620' || cfojNr == '690' || cfojNr == '880' || cfojNr == '960')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.02, Daca CFP = 13. atunci CFOJ = 500, 510, 520, 530, 620, 690, 880, 960')
-        });
-    }
 
-    if ((cfpNr == '15' || cfpNr == '16' || cfpNr == '18') &&
-        !(cfojNr == '420' || cfojNr == '430' || cfojNr == '440' || cfojNr == '450' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
-            cfojNr == '541' || cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '700' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '900' ||
-            cfojNr == '910' || cfojNr == '930' || cfojNr == '940' || cfojNr == '950' || cfojNr == '960' || cfojNr == '970' || cfojNr == '980' || cfojNr == '990' || cfojNr == '992' ||
-            cfojNr == '993' || cfojNr == '994' || cfojNr == '995' || cfojNr == '998')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.03, Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 700, 871, 890, 899, 900, 910, 930, 940, 950, 960, 970, 980, 990, 992, 993, 994, 995, 998')
-        });
-    }
 
-    if (cfpNr == '20' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '690')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.04, Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690')
-        });
-    }
+    // var allowedCFOJ = ['500', '510', '520', '620', '690'];
 
-    if (
-        cfpNr == '28' && !(cfojNr == '430' || cfojNr == '440' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' || cfojNr == '550' ||
-            cfojNr == '560' || cfojNr == '690' || cfojNr == '920' || cfojNr == '950' || cfojNr == '960')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.05, Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690, 920, 950, 960')
-        });
-    }
+    // if (cfpNr == '13' && allowedCFOJ.indexOf(cfojNr) === -1) {
+    //     webform.errors.push({
+    //         fieldName: 'TITLU_R1_C31',
+    //         msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
+    //     });
+    // }
 
-    if ((cfpNr == '23' || cfpNr == '24' || cfpNr == '25' || cfpNr == '26') && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
-        cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '910' || cfojNr == '920' || cfojNr == '940' ||
-        cfojNr == '950' || cfojNr == '960' || cfojNr == '996' || cfojNr == '997')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.06, Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 871, 890, 899, 910, 920, 940, 950, 960, 996, 997')
-        });
-    }
+
+    // if ((cfpNr == '15' || cfpNr == '16' || cfpNr == '18') &&
+    //     !(cfojNr == '420' || cfojNr == '430' || cfojNr == '440' || cfojNr == '450' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
+    //         cfojNr == '541' || cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '700' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '900' ||
+    //         cfojNr == '910' || cfojNr == '930' || cfojNr == '940' || cfojNr == '950' || cfojNr == '960' || cfojNr == '970' || cfojNr == '980' || cfojNr == '990' || cfojNr == '992' ||
+    //         cfojNr == '993' || cfojNr == '994' || cfojNr == '995' || cfojNr == '998')) {
+    //     webform.errors.push({
+    //         'fieldName': 'TITLU_R1_C31',
+    //         'msg': Drupal.t('Cod eroare: A.03, Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 700, 871, 890, 899, 900, 910, 930, 940, 950, 960, 970, 980, 990, 992, 993, 994, 995, 998')
+    //     });
+    // }
+
+    // if (cfpNr == '20' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '690')) {
+    //     webform.errors.push({
+    //         'fieldName': 'TITLU_R1_C31',
+    //         'msg': Drupal.t('Cod eroare: A.04, Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690')
+    //     });
+    // }
+
+    // if (
+    //     cfpNr == '28' && !(cfojNr == '430' || cfojNr == '440' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' || cfojNr == '550' ||
+    //         cfojNr == '560' || cfojNr == '690' || cfojNr == '920' || cfojNr == '950' || cfojNr == '960')) {
+    //     webform.errors.push({
+    //         'fieldName': 'TITLU_R1_C31',
+    //         'msg': Drupal.t('Cod eroare: A.05, Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690, 920, 950, 960')
+    //     });
+    // }
+
+    // if ((cfpNr == '23' || cfpNr == '24' || cfpNr == '25' || cfpNr == '26') && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
+    //     cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '910' || cfojNr == '920' || cfojNr == '940' ||
+    //     cfojNr == '950' || cfojNr == '960' || cfojNr == '996' || cfojNr == '997')) {
+    //     webform.errors.push({
+    //         'fieldName': 'TITLU_R1_C31',
+    //         'msg': Drupal.t('Cod eroare: A.06, Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 871, 890, 899, 910, 920, 940, 950, 960, 996, 997')
+    //     });
+    // }
 
 
     //CAP.4 Col.3 pentru CAEM-2: 3514, 3523,  451, 453, 454, 462-469, 47  se completeaza obligatoriu
