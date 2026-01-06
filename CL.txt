@@ -2,3 +2,14 @@ SELECT LEFT(CASE WHEN TRIM(c.code) REGEXP '^[135]' AND CHAR_LENGTH(TRIM(c.code))
 
 
 SELECT code, CONCAT(code, ', ', name) FROM taxonomy_term_data t JOIN classifier_vocabulary_11 c ON c.tid = t.tid ORDER BY code;
+
+
+Creaza o functie cu urmatoarele validari - care va fi apelata in - webform.validators.asa23 
+facem reformat la aceste validari 
+
+1. Daca CFP = 12, atunci CFOJ = 500, 510, 520, 590, 690
+2. Daca CFP = 13. atunci CFOJ = 500, 510, 520, 620, 690
+3. Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 993
+4. Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690
+5. Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690
+6. Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996
