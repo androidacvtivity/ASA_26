@@ -38,3 +38,7 @@ sum([&CAP5_R_C10])=[CAP5_R500_C10]msg(Suma Remunerarea muncii mii lei, nu este c
 [CAP21_R2105_1_C1]+[CAP21_R2104_1_C1]+
 [CAP21_R2103_1_C1]+[CAP21_R2102_1_C1]+
 [CAP21_R2101_1_C1]=[CAP21_R2100_1_C1]msg(Error); 
+
+[CAP9_R960_C1]+[CAP9_R910_C1]=[CAP9_R900_C1]msg(Error);
+[CAP9_R930_C1]+[CAP9_R920_C1]=[CAP9_R910_C1]msg(Error);
+[CAP9_R940_C1]+[CAP9_R920_C1]=[CAP9_R950_C1]msg(Error);
