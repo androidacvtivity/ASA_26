@@ -65,12 +65,433 @@ function set_caem_to_select(selector, valueCaem, keyCaem) {
     obj.change();
 }
 
+
+
+//---------------- Validari ASA 23 -----
+
+// 64-103 (ERROR)
+// CAP 2.1: r.2100 c.1 = CAP 2: r.220 c.1 + r.240 c.2  (valori float cu 1 zecimală)
+function validate64_103(values) {
+
+    // Stânga: Cap.2.1 r.2100 c.1
+    var left = Decimal(values.CAP21_R2100_1_C1 || 0).toDecimalPlaces(1);
+
+    // Dreapta: Cap.2 r.220 c.1
+    var r220 = Decimal(values.CAP2_R220_C1 || 0).toDecimalPlaces(1);
+
+    // Cap.2 r.240 c.2  (fallback: dacă nu există C2 în values, luăm C1 ca să nu crape)
+    var r240_raw = (typeof values.CAP2_R240_C2 !== "undefined")
+        ? values.CAP2_R240_C2
+        : values.CAP2_R240_C1;
+
+    var r240 = Decimal(r240_raw || 0).toDecimalPlaces(1);
+
+    var right = r220.plus(r240).toDecimalPlaces(1);
+
+    if (!left.equals(right)) {
+        webform.errors.push({
+            fieldName: 'CAP21_R2100_1_C1',
+            msg: Drupal.t(
+                'Cod eroare: 64-103, CAP 2.1 [r.2100 c.1 = @left] = CAP 2 [r.220 c.1 = @r220] + [r.240 c.2 = @r240]  => @right',
+                {
+                    '@left': left.toFixed(1),
+                    '@r220': r220.toFixed(1),
+                    '@r240': r240.toFixed(1),
+                    '@right': right.toFixed(1)
+                }
+            )
+        });
+    }
+}
+
+
+//--- Validari ASA 23 -----
+
+function validate_CFP_vs_Cfoj_ASA23(values) {
+    // CFOJ = TITLU_R1_C31 (primele 3 cifre)
+    // CFP  = TITLU_R5_C31 (primele 2 cifre)
+    var cfoj = (values.TITLU_R1_C31 || "").toString();
+    var cfp = (values.TITLU_R5_C31 || "").toString();
+
+    var cfojNr = cfoj.substring(0, 3);
+    var cfpNr = cfp.substring(0, 2);
+
+    // reguli (exact cum ai cerut)
+    var rules = [
+        {
+            cfp: ['12'],
+            allowed: ['500', '510', '520', '590', '690'],
+            errCode: 'A.02',
+            msg: 'Daca CFP = 12, atunci CFOJ = 500, 510, 520, 590, 690'
+        },
+        {
+            cfp: ['13'],
+            allowed: ['500', '510', '520', '620', '690'],
+            errCode: 'A.02',
+            msg: 'Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690'
+        },
+        {
+            cfp: ['15', '16', '18'],
+            allowed: ['420', '430', '440', '450', '500', '510', '520', '530', '540', '541', '550', '560', '690', '993'],
+            errCode: 'A.03',
+            msg: 'Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 993'
+        },
+        {
+            cfp: ['20'],
+            allowed: ['500', '510', '520', '530', '690'],
+            errCode: 'A.04',
+            msg: 'Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690'
+        },
+        {
+            cfp: ['28'],
+            allowed: ['430', '440', '500', '510', '520', '530', '540', '550', '560', '690'],
+            errCode: 'A.05',
+            msg: 'Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690'
+        },
+        {
+            cfp: ['23', '24', '25', '26'],
+            allowed: ['500', '510', '520', '530', '540', '550', '560', '690', '996'],
+            errCode: 'A.06',
+            msg: 'Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996'
+        }
+    ];
+
+    for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+
+        if (r.cfp.indexOf(cfpNr) !== -1) {
+            if (r.allowed.indexOf(cfojNr) === -1) {
+                webform.errors.push({
+                    fieldName: 'TITLU_R1_C31',
+                    msg: Drupal.t('Cod eroare: ' + r.errCode + ', ' + r.msg)
+                });
+            }
+            break; // o singură regulă se aplică
+        }
+    }
+}
+
+//--- Validari ASA 23 -----
+
+// 64-102 (ERROR)
+// CAP 2.1: pentru fiecare rând -> col.1 ≥ col.2 + col.3 + col.4
+// (float cu 1 zecimală)
+function validate64_102(values) {
+
+    // colectăm dinamic toate câmpurile CAP21_Rxxxx_[1..4]_C1
+    var rows = {}; // { "2101": {1:Decimal,2:Decimal,3:Decimal,4:Decimal}, ... }
+
+    Object.keys(values || {}).forEach(function (k) {
+        var m = /^CAP21_R(\d+)_(\d)_C1$/.exec(k);
+        if (!m) return;
+
+        var r = m[1];
+        var c = parseInt(m[2], 10); // 1..4
+
+        if (c < 1 || c > 4) return;
+
+        if (!rows[r]) rows[r] = {};
+
+        // rotunjim la 1 zecimală
+        rows[r][c] = Decimal(values[k] || 0).toDecimalPlaces(1);
+    });
+
+    Object.keys(rows).forEach(function (r) {
+        var col1 = (rows[r][1] !== undefined) ? rows[r][1] : Decimal(0).toDecimalPlaces(1);
+        var col2 = (rows[r][2] !== undefined) ? rows[r][2] : Decimal(0).toDecimalPlaces(1);
+        var col3 = (rows[r][3] !== undefined) ? rows[r][3] : Decimal(0).toDecimalPlaces(1);
+        var col4 = (rows[r][4] !== undefined) ? rows[r][4] : Decimal(0).toDecimalPlaces(1);
+
+        var sum234 = col2.plus(col3).plus(col4).toDecimalPlaces(1);
+
+        // col.1 >= (col.2+col.3+col.4)  => eroare dacă col1 < sum234
+        if (col1.lessThan(sum234)) {
+            webform.errors.push({
+                fieldName: 'CAP21_R' + r + '_1_C1',
+                msg: Drupal.t(
+                    'Cod eroare: 64-102, CAP 2.1 (r.@r) col.1 (@c1) < col.2+col.3+col.4 (@sum)',
+                    {
+                        '@r': r,
+                        '@c1': col1.toFixed(1),
+                        '@sum': sum234.toFixed(1)
+                    }
+                )
+            });
+        }
+    });
+}
+
+//--- Validari ASA 23 -----
+// 64-111 (ERROR)
+// ASA - CAP.1: Dacă este completat r.111 (col.1 > 0),
+// atunci în CAP.4 trebuie să existe cel puțin un CAEM-2 din lista exactă (COL3).
+function validate64_111(values) {
+
+    function toNum(v) {
+        if (v === null || v === undefined) return 0;
+        var s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Condiția: CAP.1 r.111 col.1 completat
+    var r111 = toNum(values.CAP1_R111_C1);
+    if (r111 <= 0) return;
+
+    // Lista exactă (COL3)
+    var allowed = [
+        '3514', '3523', '4511', '4519', '4532', '4540',
+        '4711', '4719', '4721', '4722', '4723', '4724', '4725', '4726', '4729',
+        '4730', '4741', '4742', '4743',
+        '4751', '4752', '4753', '4754', '4759',
+        '4761', '4762', '4763', '4764', '4765',
+        '4771', '4772', '4773', '4774', '4775', '4776', '4777', '4778', '4779',
+        '4781', '4782', '4789', '4791', '4799'
+    ];
+
+    // Set pentru căutare rapidă
+    var allowedSet = {};
+    for (var i = 0; i < allowed.length; i++) allowedSet[allowed[i]] = true;
+
+    // CAP4: luăm CAEM din C32 (select) sau C31 (input) – cum ai în formular
+    var arr = [];
+    if (values.CAP4_R_C32 && values.CAP4_R_C32.length) arr = values.CAP4_R_C32;
+    else if (values.CAP4_R_C31 && values.CAP4_R_C31.length) arr = values.CAP4_R_C31;
+
+    // normalizează: din "G4711" / "D3514" / "4711" => "4711" / "3514"
+    function normalizeCaem(v) {
+        var s = String(v || '').trim();
+        // dacă vine cu literă (G/D), păstrăm doar cifrele
+        s = s.replace(/[^\d]/g, '');
+        return s;
+    }
+
+    var found = false;
+    for (var j = 0; j < arr.length; j++) {
+        var code = normalizeCaem(arr[j]);
+        if (code && allowedSet[code]) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        webform.errors.push({
+            fieldName: "CAP4_R_C31",
+            msg: Drupal.t(
+                "Cod eroare: 64-111, Dacă CAP.1 r.111 este completat, atunci în CAP.4 trebuie să existe un CAEM-2 din lista permisă (ex.: G451, 4532, 454, 47,3514,3523)."
+            )
+        });
+    }
+}
+
+
+//--- Validari ASA 23 -----
+
+
+// 64-112 (ERROR)
+// ASA - CAP.1: Dacă este completat r.112 (col.1 > 0),
+// atunci în CAP.4 trebuie să existe cel puțin un CAEM-2 din lista permisă.
+function validate64_112(values) {
+
+    function toNum(v) {
+        if (v === null || v === undefined) return 0;
+        var s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Condiția: CAP.1 r.112 col.1 completat
+    var r112 = toNum(values.CAP1_R112_C1);
+    if (r112 <= 0) return;
+
+    // Lista exactă CAEM2 (coduri)
+    var allowed = [
+        '3514', '3523', '4511', '4519', '4531', '4540',
+        '4621', '4622', '4623', '4624',
+        '4631', '4632', '4633', '4634', '4635', '4636', '4637', '4638', '4639',
+        '4641', '4642', '4643', '4644', '4645', '4646', '4647', '4648', '4649',
+        '4651', '4652',
+        '4661', '4662', '4663', '4664', '4665', '4666', '4669',
+        '4671', '4672', '4673', '4674', '4675', '4676', '4677',
+        '4690'
+    ];
+
+    // Set pentru verificare rapidă
+    var allowedSet = {};
+    for (var i = 0; i < allowed.length; i++) allowedSet[allowed[i]] = true;
+
+    // CAP4: CAEM din C32 (select) sau C31 (input)
+    var arr = [];
+    if (values.CAP4_R_C32 && values.CAP4_R_C32.length) arr = values.CAP4_R_C32;
+    else if (values.CAP4_R_C31 && values.CAP4_R_C31.length) arr = values.CAP4_R_C31;
+
+    // normalizează: "G4621" / "D3514" / "4621" => "4621"
+    function normalizeCaem(v) {
+        return String(v || '').trim().replace(/[^\d]/g, '');
+    }
+
+    var found = false;
+    for (var j = 0; j < arr.length; j++) {
+        var code = normalizeCaem(arr[j]);
+        if (code && allowedSet[code]) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        webform.errors.push({
+            fieldName: "CAP4_R_C31",
+            msg: Drupal.t(
+                "Cod eroare: 64-112, Dacă CAP.1 r.112 este completat, atunci în CAP.4 trebuie să existe un CAEM-2 permis (3514, 3523, 4511, 4519, 4531, 4540, 4621-4690)."
+            )
+        });
+    }
+}
+
+//--- Main validator ASA 23 -----
+
+// 64-113 (WARNING)
+// CAP.2: r.297 col.1 <= 20% din r.210 col.1  (float cu 1 zecimală)
+function validate64_113(values) {
+
+    var r210 = Decimal(values.CAP2_R210_C1 || 0).toDecimalPlaces(1);
+    var r297 = Decimal(values.CAP2_R297_C1 || 0).toDecimalPlaces(1);
+
+    // prag = 20% din r.210
+    var limit = r210.times(Decimal(0.2)).toDecimalPlaces(1);
+
+    // Warning dacă r.297 depășește 20% din r.210
+    if (r297.greaterThan(limit)) {
+        webform.warnings.push({
+            fieldName: 'CAP2_R297_C1',
+            msg: Drupal.t(
+                'Cod eroare: 64-113, CAP.2 r.297 (@r297) depășește 20% din r.210 (@limit) [r.210=@r210].',
+                {
+                    '@r297': r297.toFixed(1),
+                    '@limit': limit.toFixed(1),
+                    '@r210': r210.toFixed(1)
+                }
+            )
+        });
+    }
+}
+
+//--- Validari ASA 23 -----
+// 64-114 (WARNING)
+// Cap. I: r.150 + r.160 + r.170 – r.200 + r.330 (c2-c1) + r.340 (c2-c1) >= 0
+// (float cu 1 zecimală)
+function validate64_114(values) {
+
+    // folosim Decimal ca în celelalte validări ale tale
+    function D(v) {
+        return Decimal(v || 0).toDecimalPlaces(1);
+    }
+
+    // CAP. I (1124) - r.150/160/170 col.1
+    var r150 = D(values.CAP1_R150_C1);
+    var r160 = D(values.CAP1_R160_C1);
+    var r170 = D(values.CAP1_R170_C1);
+
+    // CAP. I (1125) - r.200 col.1
+    // (în unele formulare poate fi tot CAP1; dacă la tine e alt prefix, îl ajustăm)
+    var r200 = D(values.CAP1_R200_C1);
+
+    // CAP. I (1126) - r.330/340 (col.2 - col.1)
+    var r330_c1 = D(values.CAP1_R330_C1);
+    var r330_c2 = D(values.CAP1_R330_C2);
+    var r340_c1 = D(values.CAP1_R340_C1);
+    var r340_c2 = D(values.CAP1_R340_C2);
+
+    var diff330 = r330_c2.minus(r330_c1).toDecimalPlaces(1);
+    var diff340 = r340_c2.minus(r340_c1).toDecimalPlaces(1);
+
+    // expresia finală
+    var expr = r150.plus(r160).plus(r170)
+        .minus(r200)
+        .plus(diff330)
+        .plus(diff340)
+        .toDecimalPlaces(1);
+
+    // WARNING dacă e < 0
+    if (expr.lessThan(Decimal(0).toDecimalPlaces(1))) {
+        webform.warnings.push({
+            fieldName: 'CAP1_R150_C1',
+            msg: Drupal.t(
+                'Cod eroare: 64-114, (r150+r160+r170) - r200 + (r330(c2-c1)) + (r340(c2-c1)) = @expr < 0. Detalii: r150=@r150, r160=@r160, r170=@r170, r200=@r200, r330=@d330, r340=@d340',
+                {
+                    '@expr': expr.toFixed(1),
+                    '@r150': r150.toFixed(1),
+                    '@r160': r160.toFixed(1),
+                    '@r170': r170.toFixed(1),
+                    '@r200': r200.toFixed(1),
+                    '@d330': diff330.toFixed(1),
+                    '@d340': diff340.toFixed(1)
+                }
+            )
+        });
+    }
+}
+
+
+//---  validator ASA 23 -----
+
+
+// 64-118 (ERROR)
+// Dacă este completat CAP2_R200_C1 (Cap.2 r.200 col.1),
+// atunci obligatoriu CAP1_R110_C1 (Cap.1 r.110 col.1) și invers.
+function validate64_118(values) {
+
+    function toNum(v) {
+        if (v === null || v === undefined) return 0;
+        var s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+        var n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    var r200 = toNum(values.CAP2_R200_C1);
+    var r110 = toNum(values.CAP1_R110_C1);
+
+    // “completat” = diferit de 0
+    var is200 = (r200 !== 0);
+    var is110 = (r110 !== 0);
+
+    // r.200 completat -> r.110 obligatoriu
+    if (is200 && !is110) {
+        webform.errors.push({
+            fieldName: 'CAP1_R110_C1',
+            msg: Drupal.t('Cod eroare: 64-118, Dacă este completat Cap.2 r.200 (col.1), atunci trebuie completat obligatoriu Cap.1 r.110 (col.1).')
+        });
+    }
+
+    // r.110 completat -> r.200 obligatoriu
+    if (is110 && !is200) {
+        webform.errors.push({
+            fieldName: 'CAP2_R200_C1',
+            msg: Drupal.t('Cod eroare: 64-118, Dacă este completat Cap.1 r.110 (col.1), atunci trebuie completat obligatoriu Cap.2 r.200 (col.1).')
+        });
+    }
+}
+
+
+//--- Main validator ASA 23 -----
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
         cfojNr = cfoj.substring(0, 3),
         cfp = values.TITLU_R5_C31,
         cfpNr = cfp.substring(0, 2);
+
+
+    validate_CFP_vs_Cfoj_ASA23(values);
+    validate64_103(values);
+    validate64_102(values);
+    validate64_111(values);
+    validate64_112(values);
+    validate64_113(values);
+    validate64_114(values);
+    validate64_118(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),
@@ -84,63 +505,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
 
-    var allowedCFOJ = ['500', '510', '520', '620', '690'];
-
-    if (cfpNr == '12' && allowedCFOJ.indexOf(cfojNr) === -1) {
-        webform.errors.push({
-            fieldName: 'TITLU_R1_C31',
-            msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
-        });
-    }
-
-
-
-    var allowedCFOJ = ['500', '510', '520', '620', '690'];
-
-    if (cfpNr == '13' && allowedCFOJ.indexOf(cfojNr) === -1) {
-        webform.errors.push({
-            fieldName: 'TITLU_R1_C31',
-            msg: Drupal.t('Cod eroare: A.02, Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690')
-        });
-    }
-
-
-    if ((cfpNr == '15' || cfpNr == '16' || cfpNr == '18') &&
-        !(cfojNr == '420' || cfojNr == '430' || cfojNr == '440' || cfojNr == '450' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
-            cfojNr == '541' || cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '700' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '900' ||
-            cfojNr == '910' || cfojNr == '930' || cfojNr == '940' || cfojNr == '950' || cfojNr == '960' || cfojNr == '970' || cfojNr == '980' || cfojNr == '990' || cfojNr == '992' ||
-            cfojNr == '993' || cfojNr == '994' || cfojNr == '995' || cfojNr == '998')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.03, Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 700, 871, 890, 899, 900, 910, 930, 940, 950, 960, 970, 980, 990, 992, 993, 994, 995, 998')
-        });
-    }
-
-    if (cfpNr == '20' && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '690')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.04, Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690')
-        });
-    }
-
-    if (
-        cfpNr == '28' && !(cfojNr == '430' || cfojNr == '440' || cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' || cfojNr == '550' ||
-            cfojNr == '560' || cfojNr == '690' || cfojNr == '920' || cfojNr == '950' || cfojNr == '960')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.05, Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690, 920, 950, 960')
-        });
-    }
-
-    if ((cfpNr == '23' || cfpNr == '24' || cfpNr == '25' || cfpNr == '26') && !(cfojNr == '500' || cfojNr == '510' || cfojNr == '520' || cfojNr == '530' || cfojNr == '540' ||
-        cfojNr == '550' || cfojNr == '560' || cfojNr == '690' || cfojNr == '871' || cfojNr == '890' || cfojNr == '899' || cfojNr == '910' || cfojNr == '920' || cfojNr == '940' ||
-        cfojNr == '950' || cfojNr == '960' || cfojNr == '996' || cfojNr == '997')) {
-        webform.errors.push({
-            'fieldName': 'TITLU_R1_C31',
-            'msg': Drupal.t('Cod eroare: A.06, Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 871, 890, 899, 910, 920, 940, 950, 960, 996, 997')
-        });
-    }
-
+    
 
     //CAP.4 Col.3 pentru CAEM-2: 3514, 3523,  451, 453, 454, 462-469, 47  se completeaza obligatoriu
 
