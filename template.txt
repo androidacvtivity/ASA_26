@@ -211,8 +211,10 @@ caem_select		text
 
 
 
-l
+Analizeaza din nou fisierile proectului si 
+
+Creaza validarea errors   64-125	Cap 2.1 col.1 ≥ col 2 + col. 3 + col.4
+
+functie submit  
 
 
-natalia.siminovici
-1234567890
