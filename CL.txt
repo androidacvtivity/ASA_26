@@ -13,3 +13,23 @@ facem reformat la aceste validari
 4. Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690
 5. Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690
 6. Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996
+
+
+ASA - ASA_2026_4_8.js, ID  asa-22
+1-a-sc, 1-A-SC_v028.js
+1-inf.rev, 1-TIC_v028.js
+1-tr-auto-new  - 1-TR-AUTO-v042.js
+
+
+
+
+1 TIC
+1 ASC 
+1-TR-AUTO Anual
+
+
+
+Analizeaza fisierul js - creaza lista validarilor cu trei coloane 
+1. CODUL
+2. FORMULA 
+3. errors or warnings  

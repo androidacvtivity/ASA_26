@@ -1101,8 +1101,8 @@ webform.validators.asa23 = function (v, allowOverpass) {
         var code_code = false;
 
 
-        //Cum in JS in Drupal sa  scriu in IF aceasta conditie  (daca este mai mare sau mai mic de 4 carectere )
-        var caem = 0;
+ 
+       var caem = 0;
         caem = values.CAP4_R_C31[i];
         var caem_c = 0;
         caem_c = values.CAP4_R_C32[i];
@@ -1165,7 +1165,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         }
 
 
-        if (code_code === false && (values.CHESTIONAR_RA_C1 == true)) {
+        if (code_code === false ) {
             webform.errors.push({
                 'fieldName': 'CAP4_R_C31',
                 'index': i,
@@ -1245,7 +1245,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         caem805 = values.CAP5_R_C37[m];
         caem805Nr4 = Number(caem805.substring(0, 4));
 
-        if (caem805Nr4 == '' && (values.CHESTIONAR_RA_C1 == true)) {
+        if (caem805Nr4 == '' ) {
             webform.errors.push({
                 'fieldName': '3662',
                 'index': m,
@@ -1362,14 +1362,6 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
     //--------------------------------------------------------------------------------
-    //Show all variable
-    // if (!Decimal(values.CAP4_R400_C3 || 0).equals(values.CAP1_R150_C1 || 0)) {
-    //     webform.errors.push({
-    //         'fieldName': 'CAP4_R400_C3',
-    //         'msg': Drupal.t('Cod eroare: 64-007, [r.400 c.1] = [r.150 c.1]')
-    //     });
-    // }
-
 
 
     if (!Decimal(values.CAP4_R400_C3 || 0).equals(values.CAP1_R150_C1 || 0)) {
@@ -1454,15 +1446,6 @@ webform.validators.asa23 = function (v, allowOverpass) {
     }
 
 
-    //This is code in JS for Drupal
-    // var countCap1SpecificRows = 0;
-    // var cap1SpecificFields = ['CAP1_R100_C1', 'CAP1_R110_C1', 'CAP1_R120_C1', 'CAP1_R130_C1', 'CAP1_R140_C1'];
-    // for (var fi = 0; fi < cap1SpecificFields.length; fi++) {
-    //     if (values[cap1SpecificFields[fi]]) {
-
-    //         countCap1SpecificRows++;
-    //     }
-    // }
 
 
 
@@ -1497,7 +1480,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         });
     }
 
-    if (emptyFields && (values.CHESTIONAR_RA_C1 == true)) {
+    if (emptyFields ) {
         webform.errors.push({
             'fieldName': '',
             'msg': Drupal.t('Cod eroare: A.08, Dacă nu sunt completate rd.410-419 atunci - eroare critice')
