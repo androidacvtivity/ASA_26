@@ -226,3 +226,5 @@ functie submit
 Creaza validarea  -   errors  
 
 64-129	 daca exista  cel putin un rand din CAP 1 sau un din CAP2 - Cap.9 r.980 se completează obligatoriu. 
+
+
