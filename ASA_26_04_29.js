@@ -16,8 +16,8 @@
         }
     };
 
-
-
+   
+    
 })(jQuery);
 webform.afterLoad.asa23 = function () {
     if (!Drupal.settings.mywebform.preview) {
@@ -105,7 +105,7 @@ function validate64_103(values) {
 }
 
 
-//--- Validari ASA 23 -----
+//--- Validari ASA 23 -----  61027326
 
 function validate_CFP_vs_Cfoj_ASA23(values) {
     // CFOJ = TITLU_R1_C31 (primele 3 cifre)
@@ -120,39 +120,39 @@ function validate_CFP_vs_Cfoj_ASA23(values) {
     var rules = [
         {
             cfp: ['12'],
-            allowed: ['500', '510', '520', '590', '690'],
+            allowed: ['500', '510', '520', '590', '690','880'],
             errCode: 'A.02',
-            msg: 'Daca CFP = 12, atunci CFOJ = 500, 510, 520, 590, 690'
+            msg: 'Daca CFP = 12, atunci CFOJ = 500, 510, 520, 590, 690, 880'
         },
         {
             cfp: ['13'],
-            allowed: ['500', '510', '520', '620', '690'],
+            allowed: ['500', '510', '520', '620', '690', '880'],
             errCode: 'A.02',
-            msg: 'Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690'
+            msg: 'Daca CFP = 13, atunci CFOJ = 500, 510, 520, 620, 690, 880'
         },
         {
             cfp: ['15', '16', '18'],
-            allowed: ['420', '430', '440', '450', '500', '510', '520', '530', '540', '541', '550', '560', '690', '993'],
+            allowed: ['420', '430', '440', '450', '500', '510', '520', '530', '540', '541', '550', '560', '690','871', '993'],
             errCode: 'A.03',
-            msg: 'Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 993'
+            msg: 'Daca CFP = 15, 16, 18, atunci CFOJ = 420, 430, 440, 450, 500, 510, 520, 530, 540, 541, 550, 560, 690, 871,993'
         },
         {
             cfp: ['20'],
-            allowed: ['500', '510', '520', '530', '690'],
+            allowed: ['500', '510', '520', '530', '690','871'],
             errCode: 'A.04',
-            msg: 'Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690'
+            msg: 'Daca CFP = 20, atunci CFOJ = 500, 510, 520, 530, 690, 871'
         },
         {
             cfp: ['28'],
-            allowed: ['430', '440', '500', '510', '520', '530', '540', '550', '560', '690'],
+            allowed: ['430', '440', '500', '510', '520', '530', '540', '550', '560', '690','871'],
             errCode: 'A.05',
-            msg: 'Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690'
+            msg: 'Daca CFP = 28, atunci CFOJ = 430, 440, 500, 510, 520, 530, 540, 550, 560, 690, 871'
         },
         {
             cfp: ['23', '24', '25', '26'],
-            allowed: ['500', '510', '520', '530', '540', '550', '560', '690', '996'],
+            allowed: ['500', '510', '520', '530', '540', '550', '560', '690', '996', '871'],
             errCode: 'A.06',
-            msg: 'Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996'
+            msg: 'Daca CFP = 23, 24, 25, 26, atunci CFOJ = 500, 510, 520, 530, 540, 550, 560, 690, 996, 871'
         }
     ];
 
@@ -727,6 +727,7 @@ function validate64_128(values) {
             {
                 '@r950': r950.toFixed(1),
                 '@r920': r920.toFixed(1),
+                '@r940': r940.toFixed(1),
                 '@sum': sum.toFixed(1)
             }
         );
@@ -803,7 +804,201 @@ function validate64_129(values) {
 }
 
 
+//----------------------------------------------------------
 
+//----------------------------------------------------------
+// 64-130 (ERROR)
+// CAP.9: Dacă este completat r.930, atunci obligatoriu r.940 și invers.
+function validate64_130(values) {
+
+    function isFilled(v) {
+        if (v === null || v === undefined) return false;
+
+        // pentru array (dacă vreodată devine dinamic)
+        if (Array.isArray(v)) {
+            for (var i = 0; i < v.length; i++) {
+                if (isFilled(v[i])) return true;
+            }
+            return false;
+        }
+
+        var s = String(v).trim();
+        if (s === '') return false;
+
+        // dacă e numeric -> “completat” = diferit de 0
+        var n = parseFloat(s.replace(/\s+/g, '').replace(',', '.'));
+        if (!isNaN(n)) return n !== 0;
+
+        // text nenumeric -> dacă e completat, îl considerăm completat
+        return true;
+    }
+
+    var is930 = isFilled(values.CAP9_R930_C1);
+    var is940 = isFilled(values.CAP9_R940_C1);
+
+    if (is930 !== is940) {
+        var msg = Drupal.t('Cod eroare: 64-130, CAP.9: Dacă este completat r.930, atunci r.940 se completează obligatoriu și invers.');
+
+        // marcăm ambele câmpuri ca să fie clar unde e problema
+        webform.errors.push({ fieldName: 'CAP9_R930_C1', msg: msg });
+        webform.errors.push({ fieldName: 'CAP9_R940_C1', msg: msg });
+    }
+}
+
+//--- Main validator ASA 23 -----
+
+//-------------------------------------
+// 64-131 (ERROR)
+// CAP.9: Dacă este completat r.920 sau r.940, atunci r.970 se completează obligatoriu.
+function validate64_131(values) {
+
+    function isFilled(v) {
+        if (v === null || v === undefined) return false;
+
+        if (Array.isArray(v)) {
+            for (var i = 0; i < v.length; i++) {
+                if (isFilled(v[i])) return true;
+            }
+            return false;
+        }
+
+        var s = String(v).trim();
+        if (s === '') return false;
+
+        var n = parseFloat(s.replace(/\s+/g, '').replace(',', '.'));
+        if (!isNaN(n)) return n !== 0;
+
+        return true;
+    }
+
+    var is920 = isFilled(values.CAP9_R920_C1);
+    var is940 = isFilled(values.CAP9_R940_C1);
+    var is970 = isFilled(values.CAP9_R970_C1);
+
+    if ((is920 || is940) && !is970) {
+        var msg = Drupal.t('Cod eroare: 64-131, CAP.9: Dacă este completat r.920 sau r.940, atunci r.970 se completează obligatoriu.');
+
+        webform.errors.push({ fieldName: 'CAP9_R970_C1', msg: msg });
+        // marcăm și câmpurile declanșatoare ca să fie clar de unde vine condiția
+        webform.errors.push({ fieldName: 'CAP9_R920_C1', msg: msg });
+        webform.errors.push({ fieldName: 'CAP9_R940_C1', msg: msg });
+    }
+}
+
+
+//-----------------
+// -----------------------------------------------------------
+// 64-107 (ERROR) - MODIFICAT conform cerinței noi
+// Dacă este completat rd.110 Cap.1 și rd.200 Cap.2 atunci:
+//  1) În CAP.4 trebuie completat cel puțin un CAEM-2 din lista:
+//     3514, 3523, 451, 453, 454, 462-469, 47
+//  2) Pentru CAEM-urile respective, CAP.4 Col.3 (CAP4_R_C5) este obligatorie (≠ 0)
+// -----------------------------------------------------------
+
+function validate64_107(values) {
+
+    // Listele tale existente (le poți lăsa cum sunt în fișier; le pun aici complet)
+    var caem6Nr4Arr = ['3514', '3523'];
+    var caem6Nr3Arr = ['451', '453', '454', '462', '463', '464', '465', '466', '467', '468', '469'];
+    var caem6Nr2Arr = ['47'];
+
+    // Condiția de activare: Cap.1 r.110 și Cap.2 r.200 completate (≠ 0)
+    var r110 = Number(values.CAP1_R110_C1 || 0);
+    var r200 = Number(values.CAP2_R200_C1 || 0);
+    var cond110_200 = (r110 !== 0 && r200 !== 0);
+
+    // Dacă condiția nu e îndeplinită, nu facem nimic
+    if (!cond110_200) return;
+
+    // Protecție: dacă nu există CAP.4, ieșim
+    if (!values.CAP4_R_C31 || !values.CAP4_R_C31.length) {
+        // Condiția e adevărată, dar CAP.4 nu are rânduri => lipsesc CAEM-urile obligatorii
+        webform.errors.push({
+            fieldName: 'CAP4_R_C31',
+            msg: Drupal.t(
+                'Cod eroare: 64-107. Dacă este completat CAP.1 r.110 și CAP.2 r.200, atunci în CAP.4 trebuie completat cel puțin un CAEM-2 din lista: 3514, 3523, 451, 453, 454, 462-469, 47.'
+            )
+        });
+        return;
+    }
+
+    // Flag: am găsit cel puțin un CAEM din lista obligatorie în CAP.4
+    var foundRequiredCaem = false;
+
+    // Parcurgem rândurile CAP.4
+    for (var i = 0; i < values.CAP4_R_C31.length; i++) {
+
+        var caem = (values.CAP4_R_C31[i] || '').toString().trim();
+        if (caem === '') continue;
+
+        var thirdCol = Number(values.CAP4_R_C5 && values.CAP4_R_C5[i] !== undefined ? values.CAP4_R_C5[i] : 0);
+
+        // Prefixe CAEM
+        var caemNr4 = caem.substring(0, 4);
+        var caemNr3 = caem.substring(0, 3);
+        var caemNr2 = caem.substring(0, 2);
+
+        // Match cu lista
+        var codeMatch = false;
+
+        // 4 cifre: 3514 / 3523
+        for (var j = 0; j < caem6Nr4Arr.length; j++) {
+            if (caemNr4 === caem6Nr4Arr[j]) {
+                codeMatch = true;
+                break;
+            }
+        }
+
+        // 3 cifre: 451, 453, 454, 462-469
+        if (!codeMatch) {
+            for (var k = 0; k < caem6Nr3Arr.length; k++) {
+                if (caemNr3 === caem6Nr3Arr[k]) {
+                    codeMatch = true;
+                    break;
+                }
+            }
+        }
+
+        // 2 cifre: 47
+        if (!codeMatch) {
+            for (var t = 0; t < caem6Nr2Arr.length; t++) {
+                if (caemNr2 === caem6Nr2Arr[t]) {
+                    codeMatch = true;
+                    break;
+                }
+            }
+        }
+
+        // Dacă acest rând are CAEM obligatoriu
+        if (codeMatch) {
+            foundRequiredCaem = true;
+
+            // Col.3 obligatorie
+            if (thirdCol === 0) {
+                webform.errors.push({
+                    fieldName: 'CAP4_R_C5',
+                    index: i,
+                    msg: Drupal.t(
+                        'Cod eroare: 64-107. Dacă este completat CAP.1 r.110 și CAP.2 r.200, atunci CAP.4 Col.3 este obligatorie pentru CAEM-2: 3514, 3523, 451, 453, 454, 462-469, 47.'
+                    )
+                });
+            }
+        }
+    }
+
+    // Dacă nu s-a găsit niciun CAEM obligatoriu în CAP.4
+    if (foundRequiredCaem === false) {
+        webform.errors.push({
+            fieldName: 'CAP4_R_C31',
+            msg: Drupal.t(
+                'Cod eroare: 64-107. Dacă este completat CAP.1 r.110 și CAP.2 r.200, atunci în CAP.4 trebuie completat cel puțin un CAEM-2 din lista: 3514, 3523, 451, 453, 454, 462-469, 47.'
+            )
+        });
+    }
+}
+//------------------
+
+//--
 webform.validators.asa23 = function (v, allowOverpass) {
     var values = Drupal.settings.mywebform.values,
         cfoj = values.TITLU_R1_C31,
@@ -826,7 +1021,10 @@ webform.validators.asa23 = function (v, allowOverpass) {
     validate64_126(values);
     validate64_127(values);
     validate64_128(values);
-    validate64_129(values);
+    validate64_129(values); 
+    validate64_130(values);
+    validate64_131(values);
+    validate64_107(values);
 
     var cap1_r100 = new Decimal(values.CAP1_R100_C1 || 0),
         cap1_r110 = new Decimal(values.CAP1_R110_C1 || 0),
@@ -840,7 +1038,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
 
-
+    
 
     //CAP.4 Col.3 pentru CAEM-2: 3514, 3523,  451, 453, 454, 462-469, 47  se completeaza obligatoriu
 
@@ -1100,8 +1298,8 @@ webform.validators.asa23 = function (v, allowOverpass) {
         var code_code = false;
 
 
-
-        var caem = 0;
+ 
+       var caem = 0;
         caem = values.CAP4_R_C31[i];
         var caem_c = 0;
         caem_c = values.CAP4_R_C32[i];
@@ -1164,7 +1362,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         }
 
 
-        if (code_code === false) {
+        if (code_code === false ) {
             webform.errors.push({
                 'fieldName': 'CAP4_R_C31',
                 'index': i,
@@ -1213,13 +1411,33 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
         //caem6Nr2Arr_56
 
-        if (codeMatch === true && thirdCol === 0) {
-            webform.errors.push({
-                'fieldName': 'CAP4_R_C5',
-                'index': i,
-                'msg': Drupal.t('Cod eroare: 64-107, CAP.4 Col.3 pentru CAEM-2: 3514, 3523,  451, 453, 454, 462-469, 47  se completeaza obligatoriu')
-            });
-        }
+        // if (codeMatch === true && thirdCol === 0) {
+        //     webform.errors.push({
+        //         'fieldName': 'CAP4_R_C5',
+        //         'index': i,
+        //         'msg': Drupal.t('Cod eroare: 64-107, CAP.4 Col.3 pentru CAEM-2: 3514, 3523,  451, 453, 454, 462-469, 47  se completeaza obligatoriu')
+        //     });
+        // }
+
+
+     
+        // Condiție nouă: rulează 64-107 doar dacă sunt completate ambele:
+        // // CAP.1 r.110 și CAP.2 r.200
+        // var r110 = Number(values.CAP1_R110_C1 || 0);
+        // var r200 = Number(values.CAP2_R200_C1 || 0);
+        // var cond110_200 = (r110 !== 0 && r200 !== 0);
+
+        // // ...
+
+        // if (cond110_200 && codeMatch === true && thirdCol === 0) {
+        //     webform.errors.push({
+        //         'fieldName': 'CAP4_R_C5',
+        //         'index': i,
+        //         'msg': Drupal.t(
+        //             'Cod eroare: 64-107, Dacă este completat CAP.1 r.110 și CAP.2 r.200, atunci CAP.4 Col.3 este obligatorie pentru CAEM-2: 3514, 3523, 451, 453, 454, 462-469, 47.'
+        //         )
+        //     });
+        // }
 
         if (codeMatch === false && thirdCol > 0 && caemNr2 != '56') {
             webform.errors.push({
@@ -1244,7 +1462,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         caem805 = values.CAP5_R_C37[m];
         caem805Nr4 = Number(caem805.substring(0, 4));
 
-        if (caem805Nr4 == '') {
+        if (caem805Nr4 == '' ) {
             webform.errors.push({
                 'fieldName': '3662',
                 'index': m,
@@ -1423,7 +1641,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         rez2 = rez2.plus(values.CAP5_R_C9[i] || 0);
         rez3 = rez3.plus(values.CAP5_R_C10[i] || 0);
 
-        if (values.CAP5_R_C32[0] !== "SEDIUL CENTRAL" && firstEntry) {
+        if (values.CAP5_R_C32[0] !== "SEDIUL CENTRAL" && firstEntry ) {
             firstEntry = false;
             webform.warnings.push({
                 'fieldName': 'CAP5_R_C32',
@@ -1479,7 +1697,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         });
     }
 
-    if (emptyFields) {
+    if (emptyFields ) {
         webform.errors.push({
             'fieldName': '',
             'msg': Drupal.t('Cod eroare: A.08, Dacă nu sunt completate rd.410-419 atunci - eroare critice')
@@ -1493,7 +1711,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
         });
     }
 
-    // -------------------add  --
+   // -------------------add  --
     // Check if the field is empty or has more than 9 digits
     if (!values.TITLU_R3_C31 || !/^[0-9]{9}$/.test(values.TITLU_R3_C31)) {
         webform.errors.push({
@@ -1584,7 +1802,7 @@ webform.validators.asa23 = function (v, allowOverpass) {
 
 
 
-
+   
 
 
 
