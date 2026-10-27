@@ -7,6 +7,9 @@ Option Explicit
 
 Private Const OUTPUT_NAME As String = "Tab_2_3_1"
 Private Const CATALOG_NAME As String = "CAEM2_CATALOG"
+' TOTAL is a synthetic reporting row, NOT a required CAEM2 activity/class.
+' Its internal key is "00000" and its displayed value in Tab.2.3.1 is 0.
+Private Const TOTAL_CAEM2_CODE As String = "00000"
 
 Public Sub Genereaza_Tab_2_3_1()
     Dim wb As Workbook, wsCat As Worksheet, wsOut As Worksheet
@@ -35,20 +38,33 @@ Public Sub Genereaza_Tab_2_3_1()
     byCode.CompareMode = vbTextCompare
     byNumber.CompareMode = vbTextCompare
     raw = wsCat.Range("A1:G" & wsCat.Cells(wsCat.Rows.Count, 1).End(xlUp).Row).Value2
-    countCatalog = UBound(raw, 1) - 1
-    ReDim codes(1 To countCatalog)
-    ReDim labels(1 To countCatalog)
-    ReDim chain(1 To countCatalog)
-    ReDim values(1 To countCatalog, 1 To 46)
+    ' SQL uses the catalog twice: C matches CAEM_FINAL to a code, while CC
+    ' enumerates all ancestors in C.FULL_CODE. PRIM is selected in SQL but is
+    ' NOT a WHERE condition: PRIM=1 are terminal classes, PRIM=0 are groups.
+    ' Both kinds must therefore remain available in byCode and the hierarchy.
+    ' Create TOTAL first, regardless of whether the external catalog has it.
+    ' Leave one spare index for this synthetic aggregate.
+    ReDim codes(1 To UBound(raw, 1) + 1)
+    ReDim labels(1 To UBound(raw, 1) + 1)
+    ReDim chain(1 To UBound(raw, 1) + 1)
+    ReDim values(1 To UBound(raw, 1) + 1, 1 To 46)
+    countCatalog = 1
+    codes(1) = TOTAL_CAEM2_CODE
+    labels(1) = "TOTAL PE ACTIVITATI"
+    chain(1) = TOTAL_CAEM2_CODE & ";"
+    byCode.Add TOTAL_CAEM2_CODE, 1
 
-    For i = 1 To countCatalog
-        codes(i) = Trim$(CStr(raw(i + 1, 1)))
-        labels(i) = CStr(raw(i + 1, 2))
-        chain(i) = CStr(raw(i + 1, 5))
-        If Len(codes(i)) > 0 Then
-            byCode(codes(i)) = i
-            If Len(codes(i)) = 5 And Right$(codes(i), 4) <> "0000" Then
-                byNumber(Mid$(codes(i), 2, 4)) = codes(i)
+    For i = 2 To UBound(raw, 1)
+        code = Trim$(CStr(raw(i, 1)))
+        ' Ignore any existing catalog TOTAL or numeric-zero placeholder.
+        If Len(code) > 0 And code <> TOTAL_CAEM2_CODE And code <> "0" Then
+            countCatalog = countCatalog + 1
+            codes(countCatalog) = code
+            labels(countCatalog) = CStr(raw(i, 2))
+            chain(countCatalog) = CStr(raw(i, 5))
+            byCode(code) = countCatalog
+            If Len(code) = 5 And Right$(code, 4) <> "0000" Then
+                byNumber(Mid$(code, 2, 4)) = code
             End If
         End If
     Next i
@@ -81,7 +97,7 @@ Public Sub Genereaza_Tab_2_3_1()
                 Else
                     chosen = caem
                 End If
-                If Len(chosen) > 0 And byCode.Exists(chosen) And IsEligibleLeaf(chosen) Then
+                If Len(chosen) > 0 And byCode.Exists(chosen) And IsEligibleActivityCode(chosen) Then
                     key = CompanyKey(raw, i)
                     If Not selected.Exists(key) Then
                         selected.Add key, chain(byCode(chosen))
@@ -128,8 +144,7 @@ Public Sub Genereaza_Tab_2_3_1()
     AccumulateSheet wb.Worksheets("Sheet 1"), selected, byCode, values, missingIndicators, 2, 15
     AccumulateSheet wb.Worksheets("Sheet 2"), selected, byCode, values, missingIndicators, 17, 30
 
-    ' CAEM2 TOTAL: the classifier stores "00000" (also known as 0000);
-    ' the official Excel report displays this code as numeric 0.
+    ' CAEM2 TOTAL is synthetic. The official Excel report displays it as 0.
     ' Rebuild all 46 measures explicitly as the sum of B-S section totals.
     RebuildGrandTotal codes, byCode, values, selected.Count
 
@@ -142,7 +157,7 @@ Public Sub Genereaza_Tab_2_3_1()
     Set wsOut = wb.Worksheets.Add(Before:=wb.Worksheets(1))
     wsOut.Name = OUTPUT_NAME
     WriteOutput wsOut, codes, labels, values, missingIndicators, countCatalog, inCount, missingCount, noCodeCount, filteredOut
-    MsgBox "Tab.2.3.1 a fost generat. Intreprinderi eligibile: " & inCount & _
+    MsgBox "Tab.2.3.1 a fost generat. Unitati statistice eligibile: " & inCount & _
            ". RIND_400_COL2 lipsa (tratate ca 0): " & missingCount & ".", vbInformation
 
 CleanExit:
@@ -159,15 +174,15 @@ End Sub
 Private Sub RebuildGrandTotal(ByRef codes() As String, ByVal byCode As Object, _
                               ByRef totals() As Double, ByVal expectedCompanies As Long)
     Dim root As Long, i As Long, j As Long, sect As String
-    If Not byCode.Exists("00000") Then Err.Raise vbObjectError + 104, , _
-        "Catalogul CAEM2 nu contine codul TOTAL 00000."
-    root = CLng(byCode("00000"))
+    If Not byCode.Exists(TOTAL_CAEM2_CODE) Then Err.Raise vbObjectError + 104, , _
+        "Randul intern TOTAL CAEM2 nu a fost initializat."
+    root = CLng(byCode(TOTAL_CAEM2_CODE))
     For j = 1 To 46
         totals(root, j) = 0
     Next j
     For i = LBound(codes) To UBound(codes)
         sect = codes(i)
-        If Len(sect) = 5 And sect <> "00000" Then
+        If Len(sect) = 5 And sect <> TOTAL_CAEM2_CODE Then
             If Right$(sect, 4) = "0000" And IsEligibleCatalogRow(sect) Then
                 For j = 1 To 46
                     totals(root, j) = totals(root, j) + totals(i, j)
@@ -176,7 +191,7 @@ Private Sub RebuildGrandTotal(ByRef codes() As String, ByVal byCode As Object, _
         End If
     Next i
     If totals(root, 1) <> expectedCompanies Then Err.Raise vbObjectError + 105, , _
-        "TOTAL CAEM2 nu coincide cu numarul de intreprinderi eligibile."
+        "TOTAL CAEM2 nu coincide cu numarul unitatilor statistice eligibile."
 End Sub
 
 Private Sub MarkReportedCompanies(ByVal ws As Worksheet, ByVal selected As Object, ByVal hasData As Object)
@@ -252,8 +267,8 @@ Private Function IndicatorNames() As Variant
 End Function
 
 Private Function CompanyKey(ByRef a As Variant, ByVal r As Long) As String
-    ' IDNO disambiguates any CUIIO reuse. All source tabs share these fields.
-    CompanyKey = Trim$(CStr(a(r, 2))) & "|" & Trim$(CStr(a(r, 3)))
+    ' SQL COL1 = COUNT(DISTINCT D.CUIIO): one unit of observation per CUIIO.
+    CompanyKey = Trim$(CStr(a(r, 2)))
 End Function
 
 Private Function NumberOrZero(ByVal value As Variant) As Double
@@ -262,7 +277,7 @@ Private Function NumberOrZero(ByVal value As Variant) As Double
     If IsNumeric(value) Then NumberOrZero = CDbl(value)
 End Function
 
-Private Function IsEligibleLeaf(ByVal code As String) As Boolean
+Private Function IsEligibleActivityCode(ByVal code As String) As Boolean
     Dim letter As String
     code = UCase$(Trim$(code))
     If Len(code) <> 5 Then Exit Function
@@ -271,7 +286,7 @@ Private Function IsEligibleLeaf(ByVal code As String) As Boolean
     If Left$(code, 3) = "S94" Or Left$(code, 3) = "K65" Then Exit Function
     If code = "K6419" Or code = "K6411" Then Exit Function
     If Right$(code, 4) = "0000" Then Exit Function
-    IsEligibleLeaf = True
+    IsEligibleActivityCode = True
 End Function
 
 Private Sub AssertColumn(ByRef a As Variant, ByVal columnNumber As Long, ByVal expected As String)
@@ -316,10 +331,10 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
     fields = IndicatorNames()
     ws.Cells(1, 1).Value2 = "Tab.2.3.1 - ASA 2025"
     ws.Cells(2, 1).Value2 = "Intreprinderi cu CAP_SR = 1,5,6; R400 COL2 = 0..249 (NULL=0); CAEM2 B-S cu excluderile prevazute"
-    ws.Cells(3, 1).Value2 = "Intreprinderi cu date CAP I/II: " & enterpriseCount & " | Fara date CAP I/II: " & filteredOut & " | NULL R400 COL2: " & missingCount & " | CAEM excluse/nerecunoscute: " & noCodeCount
+    ws.Cells(3, 1).Value2 = "Unitati statistice cu date CAP I/II: " & enterpriseCount & " | Fara date CAP I/II: " & filteredOut & " | NULL R400 COL2: " & missingCount & " | CAEM excluse/nerecunoscute: " & noCodeCount
     ws.Cells(4, 1).Value2 = "Denumire activitate"
     ws.Cells(4, 2).Value2 = "Codul CAEM rev.2"
-    ws.Cells(4, 3).Value2 = "Numarul intreprinderilor total"
+    ws.Cells(4, 3).Value2 = "Numarul unitatilor statistice (CUIIO distincte)"
     ws.Cells(5, 1).Value2 = "A"
     ws.Cells(5, 2).Value2 = "B"
     For j = 2 To 46
@@ -339,7 +354,7 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
         For i = 1 To totalCodes
             code = codes(i)
             includeRow = totals(i, 1) > 0 And IsEligibleCatalogRow(code)
-            If pass = 1 Then includeRow = includeRow And (code = "00000" Or Right$(code, 4) = "0000")
+            If pass = 1 Then includeRow = includeRow And (code = TOTAL_CAEM2_CODE Or Right$(code, 4) = "0000")
             If includeRow Then
                 outputRows = outputRows + 1
                 If pass = 1 Then summaryRows = summaryRows + 1
@@ -352,16 +367,17 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
         For i = 1 To totalCodes
             code = codes(i)
             includeRow = totals(i, 1) > 0 And IsEligibleCatalogRow(code)
-            If pass = 1 Then includeRow = includeRow And (code = "00000" Or Right$(code, 4) = "0000")
+            If pass = 1 Then includeRow = includeRow And (code = TOTAL_CAEM2_CODE Or Right$(code, 4) = "0000")
             If includeRow Then
                 n = n + 1
                 out(n, 1) = labels(i)
-                If code = "00000" Then out(n, 2) = 0 Else out(n, 2) = code
+                If code = TOTAL_CAEM2_CODE Then out(n, 2) = 0 Else out(n, 2) = code
                 For j = 1 To 46
                     If j > 1 And missingIndicators.Exists(CStr(j)) Then
                         out(n, j + 2) = Empty
                     Else
-                        out(n, j + 2) = Application.WorksheetFunction.Round(totals(i, j), IIf(j = 1, 0, IIf(j = 7, 1, 2)))
+                        ' COL1 = integer company count; COL2..COL46 = at most two decimals.
+                        out(n, j + 2) = Application.WorksheetFunction.Round(totals(i, j), IIf(j = 1, 0, 2))
                     End If
                 Next j
             End If
@@ -392,7 +408,7 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
 End Sub
 
 Private Function IsEligibleCatalogRow(ByVal code As String) As Boolean
-    If code = "00000" Then
+    If code = TOTAL_CAEM2_CODE Then
         IsEligibleCatalogRow = True
     Else
         IsEligibleCatalogRow = InStr(1, "BCDEFGHIJKLMNPQRS", Left$(code, 1), vbBinaryCompare) > 0 _
