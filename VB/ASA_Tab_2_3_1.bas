@@ -1,21 +1,25 @@
-Attribute VB_Name = "ASA_Tab_2_3_1"
+Attribute VB_Name = "ASA_Tab_2_3_1_2025"
 Option Explicit
 
-' ASA 2025 / Tab.2.3.1. Import this module into ASA_2025_CAPITOLE.xlsm.
-' Run Genereaza_Tab_2_3_1. No external references are required.
+' ASA 2025 / Tab.2.3.1. Column layout follows tab_3.1.sql (39 indicators).
+' Import this module into ASA_2025_CAPITOLE.xlsm.
+' Run Genereaza_Tab_2_3_1_2025. No external references are required.
 ' Missing RIND_400_COL2 is interpreted as zero (as confirmed).
+' Empty indicator cells remain blank; a reported numeric zero remains zero.
 
 Private Const OUTPUT_NAME As String = "Tab_2_3_1"
 Private Const CATALOG_NAME As String = "CAEM2_CATALOG"
+Private Const INDICATOR_COUNT As Long = 39
+Private Const OUTPUT_COLUMN_COUNT As Long = INDICATOR_COUNT + 2
 ' TOTAL is a synthetic reporting row, NOT a required CAEM2 activity/class.
 ' Its internal key is "00000" and its displayed value in Tab.2.3.1 is 0.
 Private Const TOTAL_CAEM2_CODE As String = "00000"
 
-Public Sub Genereaza_Tab_2_3_1()
+Public Sub Genereaza_Tab_2_3_1_2025()
     Dim wb As Workbook, wsCat As Worksheet, wsOut As Worksheet
     Dim byCode As Object, byNumber As Object, selected As Object, missingIndicators As Object, hasData As Object
     Dim codes() As String, labels() As String, chain() As String
-    Dim values() As Double, countCatalog As Long, i As Long, j As Long
+    Dim values() As Double, hasValues() As Boolean, countCatalog As Long, i As Long, j As Long
     Dim raw As Variant, code As String, key As String, chosen As String
     Dim segments As Variant, segment As Variant, index As Long
     Dim caem As String, updated As String, staff As Double, sr As String
@@ -47,7 +51,8 @@ Public Sub Genereaza_Tab_2_3_1()
     ReDim codes(1 To UBound(raw, 1) + 1)
     ReDim labels(1 To UBound(raw, 1) + 1)
     ReDim chain(1 To UBound(raw, 1) + 1)
-    ReDim values(1 To UBound(raw, 1) + 1, 1 To 46)
+    ReDim values(1 To UBound(raw, 1) + 1, 1 To INDICATOR_COUNT)
+    ReDim hasValues(1 To UBound(raw, 1) + 1, 1 To INDICATOR_COUNT)
     countCatalog = 1
     codes(1) = TOTAL_CAEM2_CODE
     labels(1) = "TOTAL PE ACTIVITATI"
@@ -139,14 +144,16 @@ Public Sub Genereaza_Tab_2_3_1()
         Next j
     Next segment
 
-    ' The 45 additive indicators are taken from Chapters I and II.
+    ' The 38 additive indicators are taken from Chapters I and II.
     ' Source column names map 1:1 to the CASE WHEN ... SUM(D.COL1) in SQL.
-    AccumulateSheet wb.Worksheets("Sheet 1"), selected, byCode, values, missingIndicators, 2, 15
-    AccumulateSheet wb.Worksheets("Sheet 2"), selected, byCode, values, missingIndicators, 17, 30
+    ' COL2..COL15 = 14 indicators in Chapter I; COL16..COL39 = 24 in Chapter II.
+    ' R281, R282 and R294..R2944 are not included in the latest SQL layout.
+    AccumulateSheet wb.Worksheets("Sheet 1"), selected, byCode, values, hasValues, missingIndicators, 2, 14
+    AccumulateSheet wb.Worksheets("Sheet 2"), selected, byCode, values, hasValues, missingIndicators, 16, 24
 
     ' CAEM2 TOTAL is synthetic. The official Excel report displays it as 0.
-    ' Rebuild all 46 measures explicitly as the sum of B-S section totals.
-    RebuildGrandTotal codes, byCode, values, selected.Count
+    ' Rebuild all 39 measures explicitly as the sum of B-S section totals.
+    RebuildGrandTotal codes, byCode, values, hasValues, selected.Count
 
     If SheetExists(wb, OUTPUT_NAME) Then
         If MsgBox("Sheet-ul '" & OUTPUT_NAME & "' exista. Il inlocuim?", vbYesNo + vbQuestion) <> vbYes Then GoTo CleanExit
@@ -156,7 +163,7 @@ Public Sub Genereaza_Tab_2_3_1()
     End If
     Set wsOut = wb.Worksheets.Add(Before:=wb.Worksheets(1))
     wsOut.Name = OUTPUT_NAME
-    WriteOutput wsOut, codes, labels, values, missingIndicators, countCatalog, inCount, missingCount, noCodeCount, filteredOut
+    WriteOutput wsOut, codes, labels, values, hasValues, missingIndicators, countCatalog, inCount, missingCount, noCodeCount, filteredOut
     MsgBox "Tab.2.3.1 a fost generat. Unitati statistice eligibile: " & inCount & _
            ". RIND_400_COL2 lipsa (tratate ca 0): " & missingCount & ".", vbInformation
 
@@ -172,20 +179,23 @@ Fail:
 End Sub
 
 Private Sub RebuildGrandTotal(ByRef codes() As String, ByVal byCode As Object, _
-                              ByRef totals() As Double, ByVal expectedCompanies As Long)
+                              ByRef totals() As Double, ByRef hasValues() As Boolean, _
+                              ByVal expectedCompanies As Long)
     Dim root As Long, i As Long, j As Long, sect As String
     If Not byCode.Exists(TOTAL_CAEM2_CODE) Then Err.Raise vbObjectError + 104, , _
         "Randul intern TOTAL CAEM2 nu a fost initializat."
     root = CLng(byCode(TOTAL_CAEM2_CODE))
-    For j = 1 To 46
+    For j = 1 To INDICATOR_COUNT
         totals(root, j) = 0
+        hasValues(root, j) = False
     Next j
     For i = LBound(codes) To UBound(codes)
         sect = codes(i)
         If Len(sect) = 5 And sect <> TOTAL_CAEM2_CODE Then
             If Right$(sect, 4) = "0000" And IsEligibleCatalogRow(sect) Then
-                For j = 1 To 46
+                For j = 1 To INDICATOR_COUNT
                     totals(root, j) = totals(root, j) + totals(i, j)
+                    If hasValues(i, j) Then hasValues(root, j) = True
                 Next j
             End If
         End If
@@ -215,7 +225,8 @@ Private Sub MarkReportedCompanies(ByVal ws As Worksheet, ByVal selected As Objec
 End Sub
 
 Private Sub AccumulateSheet(ByVal ws As Worksheet, ByVal selected As Object, _
-                            ByVal byCode As Object, ByRef totals() As Double, ByVal missingIndicators As Object, _
+                            ByVal byCode As Object, ByRef totals() As Double, _
+                            ByRef hasValues() As Boolean, ByVal missingIndicators As Object, _
                             ByVal startOutputCol As Long, ByVal expectedFields As Long)
     Dim data As Variant, header As Object, columnMap() As Long, fieldNames As Variant
     Dim i As Long, j As Long, k As Long, idx As Long, n As Long
@@ -244,15 +255,16 @@ Private Sub AccumulateSheet(ByVal ws As Worksheet, ByVal selected As Object, _
             tokens = Split(CStr(selected(key)), ";")
             For j = 1 To expectedFields
                 If columnMap(j) = 0 Then GoTo NextField
+                ' SUM over only missing cells has no value; zero is a reported value.
+                If Not HasReportedNumber(data(i, columnMap(j))) Then GoTo NextField
                 amount = NumberOrZero(data(i, columnMap(j)))
-                If amount <> 0 Then
-                    For Each token In tokens
-                        If byCode.Exists(CStr(token)) Then
-                            idx = byCode(CStr(token))
-                            totals(idx, startOutputCol + j - 1) = totals(idx, startOutputCol + j - 1) + amount
-                        End If
-                    Next token
-                End If
+                For Each token In tokens
+                    If byCode.Exists(CStr(token)) Then
+                        idx = byCode(CStr(token))
+                        hasValues(idx, startOutputCol + j - 1) = True
+                        totals(idx, startOutputCol + j - 1) = totals(idx, startOutputCol + j - 1) + amount
+                    End If
+                Next token
 NextField:
             Next j
         End If
@@ -260,10 +272,11 @@ NextField:
 End Sub
 
 Private Function IndicatorNames() As Variant
-    ' Positions correspond to output COL1...COL46; index 1 is a placeholder.
+    ' Zero-based positions correspond to output COL1...COL39.
+    ' Index 0 is COUNT; COL28 = R290 and COL39 = R297, as in tab_3.1.sql.
     IndicatorNames = Split("COUNT|RIND_100|RIND_110|RIND_111|RIND_112|RIND_120|RIND_121|RIND_122|RIND_130|RIND_140|RIND_150|RIND_151|RIND_160|RIND_170|RIND_180|" & _
-      "RIND_200|RIND_210|RIND_220|RIND_221|RIND_222|RIND_240|RIND_241|RIND_242|RIND_243|RIND_260|RIND_270|RIND_280|RIND_281|RIND_282|RIND_290|" & _
-      "RIND_2911|RIND_2912|RIND_292|RIND_293|RIND_2931|RIND_291|RIND_294|RIND_2941|RIND_2942|RIND_2943|RIND_2944|RIND_295|RIND_296|RIND_2961|RIND_2962|RIND_297", "|")
+      "RIND_200|RIND_210|RIND_220|RIND_221|RIND_222|RIND_240|RIND_241|RIND_242|RIND_243|RIND_260|RIND_270|RIND_280|RIND_290|" & _
+      "RIND_2911|RIND_2912|RIND_292|RIND_293|RIND_2931|RIND_291|RIND_295|RIND_296|RIND_2961|RIND_2962|RIND_297", "|")
 End Function
 
 Private Function CompanyKey(ByRef a As Variant, ByVal r As Long) As String
@@ -275,6 +288,12 @@ Private Function NumberOrZero(ByVal value As Variant) As Double
     If IsError(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
     If Trim$(CStr(value)) = "" Then Exit Function
     If IsNumeric(value) Then NumberOrZero = CDbl(value)
+End Function
+
+Private Function HasReportedNumber(ByVal value As Variant) As Boolean
+    If IsError(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
+    If Trim$(CStr(value)) = "" Then Exit Function
+    HasReportedNumber = IsNumeric(value)
 End Function
 
 Private Function IsEligibleActivityCode(ByVal code As String) As Boolean
@@ -323,6 +342,7 @@ End Function
 
 Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
                         ByRef labels() As String, ByRef totals() As Double, _
+                        ByRef hasValues() As Boolean, _
                         ByVal missingIndicators As Object, ByVal totalCodes As Long, ByVal enterpriseCount As Long, _
                         ByVal missingCount As Long, ByVal noCodeCount As Long, ByVal filteredOut As Long)
     Dim out() As Variant, i As Long, j As Long, r As Long, n As Long
@@ -337,13 +357,13 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
     ws.Cells(4, 3).Value2 = "Numarul unitatilor statistice (CUIIO distincte)"
     ws.Cells(5, 1).Value2 = "A"
     ws.Cells(5, 2).Value2 = "B"
-    For j = 2 To 46
+    For j = 2 To INDICATOR_COUNT
         ws.Cells(4, j + 2).Value2 = Replace$(fields(j - 1), "_", " ") & " col1"
         If missingIndicators.Exists(CStr(j)) Then
             ws.Cells(4, j + 2).Value2 = CStr(fields(j - 1)) & " - LIPSESTE IN SURSA"
         End If
     Next j
-    For j = 1 To 46
+    For j = 1 To INDICATOR_COUNT
         ws.Cells(5, j + 2).Value2 = j
     Next j
     ' The official report uses two UNION branches in this order:
@@ -362,7 +382,7 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
         Next i
     Next pass
     If outputRows = 0 Then Exit Sub
-    ReDim out(1 To outputRows, 1 To 48)
+    ReDim out(1 To outputRows, 1 To OUTPUT_COLUMN_COUNT)
     For pass = 1 To 2
         For i = 1 To totalCodes
             code = codes(i)
@@ -372,19 +392,19 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
                 n = n + 1
                 out(n, 1) = labels(i)
                 If code = TOTAL_CAEM2_CODE Then out(n, 2) = 0 Else out(n, 2) = code
-                For j = 1 To 46
-                    If j > 1 And missingIndicators.Exists(CStr(j)) Then
+                For j = 1 To INDICATOR_COUNT
+                    If j > 1 And (missingIndicators.Exists(CStr(j)) Or Not hasValues(i, j)) Then
                         out(n, j + 2) = Empty
                     Else
-                        ' COL1 = integer company count; COL2..COL46 = at most two decimals.
-                        out(n, j + 2) = Application.WorksheetFunction.Round(totals(i, j), IIf(j = 1, 0, 2))
+                        ' Match SQL rounding: COL1 = 0, COL7 = 1, all other columns = 2 decimals.
+                        out(n, j + 2) = Application.WorksheetFunction.Round(totals(i, j), IIf(j = 1, 0, IIf(j = 7, 1, 2)))
                     End If
                 Next j
             End If
         Next i
     Next pass
-    ws.Range("A6").Resize(n, 48).Value2 = out
-    With ws.Range("A4:AV5")
+    ws.Range("A6").Resize(n, OUTPUT_COLUMN_COUNT).Value2 = out
+    With ws.Range("A4:AO5")
         .Font.Bold = True
         .Interior.Color = RGB(37, 67, 99)
         .Font.Color = vbWhite
@@ -393,15 +413,16 @@ Private Sub WriteOutput(ByVal ws As Worksheet, ByRef codes() As String, _
     ws.Rows("4:5").RowHeight = 32
     ws.Columns("A").ColumnWidth = 59
     ws.Columns("B").ColumnWidth = 17
-    ws.Columns("C:AV").ColumnWidth = 16
-    ws.Range("C6:AV" & n + 5).NumberFormat = "#,##0.00;[Red](#,##0.00);–"
+    ws.Columns("C:AO").ColumnWidth = 16
+    ' ASCII-only format avoids damaged dash characters when importing into VBA.
+    ws.Range("C6:AO" & n + 5).NumberFormat = "#,##0.00;[Red](#,##0.00);0.00"
     ws.Range("C6:C" & n + 5).NumberFormat = "0"
-    ws.Range("A6:AV" & summaryRows + 5).Font.Bold = True
-    With ws.Range("A" & summaryRows + 6 & ":AV" & summaryRows + 6)
+    ws.Range("A6:AO" & summaryRows + 5).Font.Bold = True
+    With ws.Range("A" & summaryRows + 6 & ":AO" & summaryRows + 6)
         .Font.Bold = True
         .Interior.Color = RGB(221, 231, 241)
     End With
-    ws.Range("A4:AV" & n + 5).AutoFilter
+    ws.Range("A4:AO" & n + 5).AutoFilter
     ws.Activate
     ws.Range("C6").Select
     ActiveWindow.FreezePanes = True
