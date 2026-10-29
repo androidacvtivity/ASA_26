@@ -1,0 +1,7 @@
+| Rând | Indicator | Sursa sau calculul |
+|---|---|---|
+| **01** | Numărul întreprinderilor | Suma marcajelor AP SR din rândurile 1, 5 și 6, pentru întreprinderile selectate |
+| **03** | Numărul mediu de salariați | CAP IV, R400, col.2 din chestionar |
+| **05** | Venituri din vânzări | CAP I, R150, col.1 |
+| **07** | Valoarea producției | Formula de mai jos |
+| **09** | Valoarea adăugată brută la costul factorilor | Formula de mai jos |
