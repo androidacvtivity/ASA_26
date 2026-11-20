@@ -51,30 +51,36 @@ SELECT
         END
     , 2) AS RIND_350_COL2
 FROM
-    CIS2.VW_DATA_ALL_COEF D
+    CIS2.VW_DATA_ALL D
     INNER JOIN CIS2.RENIM R ON R.CUIIO = D.CUIIO AND R.CUIIO_VERS = D.CUIIO_VERS
 WHERE
     D.FORM IN (64)
     AND D.PERIOADA = :pPERIOADA
     AND D.CAPITOL IN (1126, 1129, 100)
     AND D.CUIIO IN (
-        SELECT DISTINCT D.CUIIO 
-        FROM (
-            SELECT DISTINCT
-              D.CUIIO,
-              D.RIND,
-              SUM(D.COL1) AS COL1
-            FROM CIS2.VW_DATA_ALL D
-            WHERE (D.PERIOADA = :PERIOADA)
-              AND D.CAPITOL IN (100)
+        
+         
+SELECT 
+DISTINCT D.CUIIO 
+FROM CIS2.DATA_ALL D
+
+ WHERE (D.PERIOADA = :pPERIOADA)
+            
               AND D.FORM IN (64)
-              AND D.RIND IN ('1','5','6')  
-            GROUP BY 
-              D.CUIIO,
-              D.RIND
-            HAVING 
-              NVAL(SUM(D.COL1)) > 0
-        ) D 
+              AND D.FORM_VERS IN (2000)
+              AND D.ID_MD IN (62382,114171,62413)
+              
+              
+              GROUP BY 
+              D.CUIIO
+
+ HAVING (
+           SUM(CASE WHEN D.ID_MD = 62382 AND D.COL1 IS NOT NULL
+                    THEN D.COL1 ELSE 0 END) = 1
+        OR SUM(CASE WHEN D.ID_MD IN (114171, 62413) AND D.COL1 IS NOT NULL
+                    THEN D.COL1 ELSE 0 END) > 0
+    )
+            
     )
 GROUP BY
     D.ANUL,
