@@ -1,0 +1,27 @@
+Tab.19 (*) 
+Nr. de intreprinderi pe economie	1	56332
+
+Numarul mediu de salariati	3	497856
+
+Venituri din vinzarie	5	711916132
+
+
+dar in  
+
+Tab.27.2 (*) 
+56338.7
+
+Nr.    Mediu de salariati
+
+2
+497862
+
+
+Venituri din vinzari
+
+3
+711916136.9
+
+
+Ce nu este bine in 
+Tab.27.2 (*)
