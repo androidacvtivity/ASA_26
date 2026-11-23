@@ -1,0 +1,330 @@
+ÎNDRUMAR PENTRU STATISTICIAN
+Cum se calculează tabelul pe activități CAEM2 și ce trebuie clarificat
+======================================================================
+
+Scop: explicarea tabelului rezultat din interogarea ASA (formular 64),
+în varianta în care un singur SQL calculează și totalurile, și procentele.
+
+IMPORTANT: Acest document descrie LOGICA interogărilor SQL transmise.
+Nu certifică denumirile oficiale ale indicatorilor și nici corectitudinea
+metodologică a algoritmului. Acestea trebuie confirmate de statistician.
+
+
+1. CE PREZINTĂ TABELUL?
+----------------------
+Pentru fiecare secțiune economică CAEM2 selectată, tabelul prezintă:
+  - trei totaluri ale indicatorilor proveniți din rapoartele întreprinderilor;
+  - patru procente: cât reprezintă întreprinderile aflate în primele 5
+    și primele 20 de poziții ale unor clasamente din totalul secțiunii.
+
+Există DOUĂ clasamente diferite:
+  A. Clasament după indicatorul din capitolul 1127, rândul 400, coloana 4;
+  B. Clasament după indicatorul din capitolul 1124, rândul 150, coloana 1.
+
+Cele mai mari întreprinderi din clasamentul A nu sunt neapărat aceleași
+cu cele mai mari întreprinderi din clasamentul B.
+
+ATENȚIE: în SQL-ul actual, clasamentele se formează pe întregul set de
+întreprinderi eligibile pentru perioada și teritoriul selectate, ÎNAINTE
+de repartizarea lor în secțiuni CAEM2. Nu se formează câte un Top 5/20
+separat pentru secțiunile B, C, D etc.
+
+Mai mult, clasificarea și excluderile CAEM2 sunt aplicate după stabilirea
+pozițiilor în clasament. Astfel, unele întreprinderi aflate în Top 5/20
+ar putea fi ulterior excluse din tabel, dar le-au fost deja alocate poziții.
+Acest aspect trebuie confirmat metodologic.
+
+
+2. PARTEA STÂNGĂ A TABELULUI: CE ÎNSEAMNĂ RÂNDURILE?
+-----------------------------------------------------
+Fiecare rând final corespunde unei secțiuni de activitate economică CAEM2
+incluse de interogare. Denumirile vin din clasificatorul
+CIS2.VW_CL_CAEM2, nu din denumirea liberă introdusă de întreprindere.
+
+În interogare sunt selectate activitățile din secțiunile:
+B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R și S.
+Sunt excluse codurile și subcodurile stabilite în SQL:
+S94, K65, K6419 și K6411.
+
+Exemple orientative pentru partea stângă:
+  B — Industria extractivă
+  C — Industria prelucrătoare
+  F — Construcții
+  G — Comerț cu ridicata și cu amănuntul
+  H — Transport și depozitare
+  J — Informații și comunicații
+
+Denumirea exactă, în forma utilizată de CIS2, este preluată din clasificator.
+
+Câmpurile tehnice:
+  NUME_ROW   = denumirea secțiunii CAEM2 afișate statisticianului;
+  NR_ROW     = identificatorul tehnic al rândului;
+  ORDINE     = poziția folosită pentru ordonarea rândurilor;
+  DECIMAL_POS = setarea de afișare a zecimalelor.
+
+În SQL-ul transmis:
+  NR_ROW = CODUL || '~' || COL1 || '1'
+Prin urmare, NR_ROW include valoarea indicatorului COL1 și se poate
+schimba dacă aceasta se schimbă. Nu este un cod CAEM2 pur și stabil.
+
+În primul SQL se păstrează numai rândurile cu DENUMIRE nenulă.
+Aceasta este atribuită pentru codurile CC.CODUL care se termină în „0000”,
+corespunzătoare nivelului de secțiune folosit în interogare.
+
+
+3. CUM SUNT SELECTATE ÎNTREPRINDERILE?
+--------------------------------------
+Sursa principală: CIS2.VW_DATA_ALL_COEF.
+Interogarea este restrânsă la:
+  - formularul 64;
+  - versiunea de formular :PFORM_VERS;
+  - perioada :PPERIOADA;
+  - teritoriul :PCOD_CUATM;
+  - capitolele 100, 1123, 1124, 1125, 1126, 1127, 1128, 1129.
+
+Se folosește legătura cu CIS2.RENIM, după CUIIO și CUIIO_VERS.
+Interogarea agregă datele pentru fiecare pereche CUIIO/CUIIO_VERS,
+aplicând și condițiile de eligibilitate din HAVING:
+  - o condiție privind suma coloanelor primare D.COL1–D.COL4;
+  - condițiile privind ID_MD 62382, 114171 sau 62413.
+
+Atenție: condiția HAVING cu SUM(COL1), SUM(COL2), ... se referă la
+coloanele din datele primare D, NU la coloanele finale ale tabelului.
+
+Codul CAEM2 al întreprinderii este stabilit astfel:
+  - dacă există cod CAEM2 actualizat la ID_MD = 61832, se ia acesta;
+  - în caz contrar, se folosește codul CAEM2 din CIS2.RENIM.
+
+La etapa finală, întreprinderile sunt grupate pe secțiuni CAEM2 prin
+clasificatorul CIS2.VW_CL_CAEM2.
+
+
+4. EXPLICAȚIA FIECĂREI COLOANE FINALE
+-------------------------------------
+COL1 — TOTALUL VALORILOR „CD”
+  Sursa: capitolul 100, rândul „CD”, coloana 1.
+  Calcul: se însumează DD.CD pentru întreprinderile din secțiunea CAEM2.
+  Important: SQL folosește SUM(CD), NU COUNT(DISTINCT CUIIO).
+  Dacă CD este coeficientul de extindere, rezultatul poate fi interpretat
+  ca un număr ponderat; semnificația exactă trebuie confirmată.
+
+COL2 — TOTALUL INDICATORULUI R400
+  Sursa: capitolul 1127, rândul 400, coloana 4.
+  Calcul: se însumează valoarea indicatorului pentru întreprinderile
+  încadrate în secțiunea CAEM2.
+  Denumirea economică oficială a acestei coloane trebuie confirmată.
+
+COL3 — TOTALUL INDICATORULUI R150
+  Sursa: capitolul 1124, rândul 150, coloana 1.
+  Calcul: se însumează indicatorul pentru întreprinderile din secțiune.
+  În discuția despre ASA acesta este tratat ca indicator al veniturilor
+  din vânzări; denumirea exactă și unitatea se verifică în formular.
+
+COL4 — PONDEREA TOP 5 DUPĂ R400, ÎN %
+  Numărător: suma indicatorului R400 pentru întreprinderile din secțiunea
+  respectivă care au pozițiile 1–5 în clasamentul GLOBAL după R400.
+  Numitor: COL2 (totalul R400 al secțiunii respective).
+  Formula finală: ROUND(suma_top5_R400 / NOZERO(COL2) * 100, 1).
+
+COL5 — PONDEREA TOP 20 DUPĂ R400, ÎN %
+  Numărător: suma R400 pentru întreprinderile din secțiunea respectivă
+  aflate pe pozițiile 1–20 din clasamentul GLOBAL R400.
+  Numitor: COL2.
+  Formula: ROUND(suma_top20_R400 / NOZERO(COL2) * 100, 1).
+
+COL6 — PONDEREA TOP 5 DUPĂ R150, ÎN %
+  Numărător: suma R150 pentru întreprinderile din secțiune aflate
+  pe pozițiile 1–5 în clasamentul GLOBAL după R150.
+  Numitor: COL3 (totalul R150 al secțiunii).
+  Formula: ROUND(suma_top5_R150 / NOZERO(COL3) * 100, 1).
+
+COL7 — PONDEREA TOP 20 DUPĂ R150, ÎN %
+  Numărător: suma R150 pentru întreprinderile din secțiune aflate
+  pe pozițiile 1–20 în clasamentul GLOBAL după R150.
+  Numitor: COL3.
+  Formula: ROUND(suma_top20_R150 / NOZERO(COL3) * 100, 1).
+
+REZUMAT:
+  COL1 = suma CD
+  COL2 = total R400
+  COL3 = total R150
+  COL4 = Top 5 R400 / total R400 al secțiunii × 100
+  COL5 = Top 20 R400 / total R400 al secțiunii × 100
+  COL6 = Top 5 R150 / total R150 al secțiunii × 100
+  COL7 = Top 20 R150 / total R150 al secțiunii × 100
+
+
+5. EXEMPLU SIMPLU: CUM SE CITEȘTE UN RÂND
+-----------------------------------------
+Presupunem că secțiunea G are următoarele valori (DATE FICTIVE):
+  COL1 = 5.000
+  COL2 = 100.000
+  COL3 = 2.000.000
+
+Întreprinderile din secțiunea G care figurează în Top 5 GLOBAL după R400
+au împreună valoarea R400 de 30.000, iar cele din Top 20 au 60.000.
+Întreprinderile din G care figurează în Top 5 GLOBAL după R150 au împreună
+valoarea R150 de 800.000, iar cele din Top 20 au 1.200.000.
+
+Rezultatul afișat în ultimele patru coloane:
+  COL4 = 30.000 / 100.000 × 100       = 30,0%
+  COL5 = 60.000 / 100.000 × 100       = 60,0%
+  COL6 = 800.000 / 2.000.000 × 100   = 40,0%
+  COL7 = 1.200.000 / 2.000.000 × 100 = 60,0%
+
+Cum se interpretează COL6 = 40,0%:
+  Din totalul indicatorului R150 al secțiunii G, 40% este realizat
+  de întreprinderile din G care se află printre primele 5 în clasamentul
+  GLOBAL după R150.
+
+Nu înseamnă automat că cele mai mari 5 întreprinderi DIN SECȚIUNEA G
+realizează 40% din venitul secțiunii G. Aceasta ar fi o metodă diferită!
+
+
+6. CE ÎNSEAMNĂ „PRIMELE 5” ȘI „PRIMELE 20”?
+--------------------------------------------
+Se sortează descrescător întreprinderile după valoarea indicatorului.
+Primele 5 sunt cele de pe locurile 1–5; primele 20, cele de pe 1–20.
+
+R400 folosește ca bază capitol 1127 / rând 400 / coloana 4.
+R150 folosește ca bază capitol 1124 / rând 150 / coloana 1.
+
+Interogarea folosește ROW_NUMBER(), care atribuie locuri diferite chiar și
+pentru valori identice. Dacă două întreprinderi au aceeași valoare la
+limita locului 5 sau 20, numai una poate fi inclusă, în funcție de
+ordinea determinată de baza de date; un criteriu secundar explicit de
+departajare nu este prezent în SQL.
+
+Clasamentele nu sunt separate pe CAEM2 (nu există PARTITION BY CAEM_FINAL).
+
+
+7. ROTUNJIREA ȘI AFIȘAREA VALORILOR
+-----------------------------------
+În SQL:
+  COL1, COL2, COL3 sunt însumate și rotunjite la o zecimală.
+  Procentele COL4–COL7 sunt rotunjite la o zecimală.
+
+Totuși, DECIMAL_POS = '0001111' indică afișarea fără zecimale pentru
+COL1–COL3 și cu o zecimală pentru COL4–COL7, conform convenției folosite
+în codul de creare a tabelului.
+
+Prin urmare, o valoare calculată cu o zecimală în COL1–COL3 poate apărea
+vizual fără zecimale. Aceasta nu este același lucru cu precizia calculului.
+
+Funcția NOZERO() apare în formule pentru a gestiona numitorul zero;
+comportamentul efectiv trebuie verificat în implementarea CIS2.
+
+
+8. DE CE NU MAI ESTE NECESAR AL DOILEA SQL?
+-------------------------------------------
+În procedura veche existau două operații:
+  1) SQL-ul principal calcula totaluri și sume absolute Top 5 / Top 20;
+  2) blocul DECLARE/UPDATE împărțea sumele Top la totaluri și le transforma
+     în procente, actualizând valorile din CIS2.TABLE_OUT.
+
+În versiunea nouă, unicul SELECT calculează DIRECT procentele COL4–COL7.
+După introducerea acestei versiuni, vechiul UPDATE trebuie dezactivat:
+altfel ar împărți procentele încă o dată și ar produce rezultate greșite.
+
+Atenție: fișierul SQL discutat are INSERT INTO comentat. Pentru a se salva
+rezultatele în CIS2.TABLE_OUT, mecanismul de generare trebuie să execute
+inserarea corespunzătoare. Faptul că SELECT returnează rezultate nu
+înseamnă automat că tabelul TABLE_OUT a fost actualizat.
+
+
+9. ÎNTREBĂRI OBLIGATORII PENTRU STATISTICIAN (METODOLOGIE)
+---------------------------------------------------------
+[1] CE ÎNSEAMNĂ TOP 5 ȘI TOP 20?
+    a) Primele 5/20 întreprinderi din ÎNTREAGA selecție (metoda SQL actuală)?
+    b) Primele 5/20 întreprinderi DIN FIECARE SECȚIUNE CAEM2?
+    Aceasta este întrebarea cea mai importantă; modifică rezultatele.
+
+[2] CLASAMENTUL TREBUIE CALCULAT ÎNAINTE SAU DUPĂ EXCLUDERILE CAEM2?
+    SQL-ul clasează întreprinderile înainte de aplicarea filtrului B–S și
+    excluderilor S94, K65, K6419, K6411. Este aceasta regula intenționată?
+
+[3] CARE SUNT DENUMIRILE OFICIALE ȘI UNITĂȚILE DE MĂSURĂ?
+    Confirmați ce reprezintă exact CD, R400 col.4 și R150 col.1.
+    COL1 = număr de întreprinderi ponderat, sumă de coeficienți sau altceva?
+    Pentru R400 și R150: unități monetare, persoane ori altă unitate?
+
+[4] DATELE PENTRU CLASAMENT ȘI TOTAL TREBUIE SĂ FIE COEFICIENTATE?
+    SQL folosește CIS2.VW_DATA_ALL_COEF pentru ambele.
+    Se dorește această metodă pentru Top 5/20 și pentru numitori?
+
+[5] CUM TRATĂM EGALITĂȚILE LA LOCURILE 5 ȘI 20?
+    Rămân exact 5/20 întreprinderi, folosind un criteriu fix de departajare
+    (de exemplu CUIIO), sau se includ și toate întreprinderile la egalitate?
+
+[6] CE FACEM DACĂ TOTALUL INDICATORULUI ESTE ZERO, NEGATIV SAU NULL?
+    Ce valoare trebuie afișată la COL4–COL7: 0, gol, alt simbol?
+    Trebuie acceptate eventuale procente negative sau mai mari de 100%?
+
+[7] CE CAEM2 FOLOSIM?
+    CAEM2 actualizat din ID_MD=61832 ori CAEM2 din RENIM, cum face SQL?
+    Este corect ca cele două surse să fie folosite în această ordine?
+
+[8] ESTE CORECTĂ LISTA SECȚIUNILOR ȘI A EXCLUDERILOR?
+    Se includ B–S, fără A și O, și se exclud S94, K65, K6419, K6411.
+    Trebuie afișat și un rând „TOTAL ECONOMIE” sau doar secțiunile?
+
+[9] CARE ESTE TERITORIUL CORECT PENTRU TOP?
+    Top 5/20 trebuie stabilit pentru teritoriul selectat sau la nivelul
+    întregii țări, iar apoi valorile repartizate teritorial?
+    SQL-ul actual formează topul în cadrul selecției teritoriale.
+
+[10] CÂTE ZECIMALE TREBUIE SĂ AIBĂ REZULTATELE?
+     COL1–COL3 sunt rotunjite la o zecimală în calcul, dar afișate fără;
+     COL4–COL7 sunt procente cu o zecimală. Este aceasta regula corectă?
+
+
+10. VERIFICĂRI TEHNICE RECOMANDATE PROGRAMATORULUI
+--------------------------------------------------
+A. Să verifice că un CUIIO nu apare în mod neintenționat de mai multe ori
+   ca urmare a versiunilor CUIIO_VERS sau a grupării inițiale.
+B. Să confirme că ordinea pozițiilor Top 5/20 este stabilă când valorile
+   sunt identice: ROW_NUMBER() fără criteriu secundar poate fi nedeterminist.
+C. Să verifice calculul procentelor pentru total zero prin NOZERO().
+D. Să evite executarea blocului UPDATE din versiunea anterioară după SQL-ul
+   nou: procentele sunt deja calculate.
+E. Să verifice compatibilitatea preciziei calculului cu DECIMAL_POS.
+F. Să verifice NR_ROW: formula actuală include COL1, deci identificatorul
+   se modifică odată cu valoarea statistică. De preferat un cod stabil.
+G. Să verifice ORDINE: se combină șiruri („1” || ORDINE) și ROWNUM;
+   ordonarea vizuală poate să nu corespundă mereu codului CAEM2.
+H. Să elimine ori să clarifice condiția :pID_MDTABLE = :pID_MDTABLE,
+   care nu restrânge efectiv rândurile la un identificator din date.
+I. Să confirme dacă totalurile trebuie calculate cu valori nerotunjite,
+   apoi rotunjite la final (cum procedează SQL-ul actual la COL1–COL3).
+J. Să compare un eșantion de întreprinderi și o secțiune CAEM2 cu
+   rapoartele primare și cu tabelul de control deja validat.
+
+
+11. FIȘĂ DE DECIZIE — DE COMPLETAT ÎNAINTE DE VALIDARE
+------------------------------------------------------
+Clasament Top 5/20:       [ ] global    [ ] separat pe CAEM2
+Top calculat:             [ ] înainte de excluderi [ ] după excluderi
+Coeficienți aplicați:     [ ] da, și la clasament   [ ] altă regulă
+Egalități la limită:      [ ] exact 5/20            [ ] includem egalități
+Numitor zero:             [ ] 0   [ ] gol   [ ] altă valoare: __________
+R400 col.4 este:          _____________________________________________
+R150 col.1 este:          _____________________________________________
+Semnificația CD:          _____________________________________________
+Unitatea COL1:            _____________________________________________
+Unitatea COL2:            _____________________________________________
+Unitatea COL3:            _____________________________________________
+Secțiuni CAEM2 incluse:   _____________________________________________
+Total economie necesar:   [ ] da  [ ] nu
+Zecimale COL1–COL3:       __________
+Zecimale COL4–COL7:       __________
+
+
+CONCLUZIE
+---------
+Tabelul arată, pentru fiecare secțiune CAEM2, trei totaluri și patru
+ponderi procentuale ale întreprinderilor din clasamentele Top 5 / Top 20.
+
+Pentru validare, statisticianul trebuie să decidă ÎNAINTE DE TOATE dacă
+Top 5 / Top 20 se determină la nivelul întregii selecții sau separat
+pentru fiecare secțiune CAEM2. Fără această decizie, rezultatele pot fi
+numeric corecte pentru SQL-ul actual, dar diferite de metodologia dorită.

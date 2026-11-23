@@ -1,0 +1,75 @@
+VERIFICAREA TABELULUI TAB.27.2 (*) – ANUL 2025
+Comparație cu ASA_CAPITOLE_2025.zip / ASA_CAPITOLE_2025.xlsx
+==================================================================================
+
+SURSE
+- ASA_CAPITOLE_2025.xlsx din arhivă: CAP1_COEF si CAP4_COEF.
+- Tab.27.2(_)_0000000_2025-Anul.xlsx: randul TOTAL si 17 sectiuni CAEM2.
+- Metoda: calcul din valorile exportate, inclusiv numerele pastrate ca text, fara a modifica documentele sursa.
+
+CONCLUZIE: PROCENTELE TOP 5/20 SE CONFIRMA, TOTALURILE ABSOLUTE DIFERA.
+Au fost identificate 16.725 intreprinderi distincte dupa CUIIO. CAP_SR=1 pentru 15.877 si CAP_SR=5 pentru 848.
+Valorile RIND_CD sunt ponderi / coeficienti; suma lor nu este COUNT DISTINCT CUIIO.
+
+1. COMPARATIA TOTALURILOR
+  Număr unități – suma RIND_CD: baza 56.332,1; tabel 56.338,7; tabel minus baza +6,6.
+  Salariați – RIND_400_COL2: baza 497.855,5; tabel 497.862,0; diferență +6,5.
+  Venituri – RIND_150: baza 711.916.131,9; tabel 711.916.136,9; diferență +5,0.
+  Sectiunile B-S din tabel se insumeaza exact la randul TOTAL (pentru COL1-COL3).
+
+2. VERIFICAREA PONDERILOR
+  Primele 5 si primele 20 au fost determinate prin ordonarea GLOBALA descrescatoare
+  dupa numarul mediu de salariati, respectiv dupa venitul din vanzari.
+  Toate cele 68 de procente de la secțiunile CAEM2 (17 x 4) coincid cu cele din tabel la o zecimală.
+  TOTAL: primele 5 salariați 4,1%; primele 20 salariați 10,2%;
+         primele 5 venituri 10,5%; primele 20 venituri 20,6%.
+
+3. REPARTIZAREA CAEM2 – SEMNAL IMPORTANT
+  Coloana H (CAEM2, codul de bază) și coloana K (CAEM_ACT, cod actualizat) diferă
+  în 1.960 de înregistrări. În 920 cazuri codul actualizat sugerează schimbarea secțiunii,
+  conform asocierii codurilor cu secțiunile deduse din date; 7 coduri actualizate nu
+  au corespondent în maparea dedusă și trebuie controlate în clasificator.
+  Valorile din Tab.27.2 coincid mult mai bine cu însumarea după CAEM2 de bază decât
+  cu repartizarea aproximată după CAEM_ACT. Exemple de schimbări reale în fișier:
+    CUIIO 277954: CAEM2=C3109, CAEM_ACT=6820 (secțiunea L), venituri ~54.402,4.
+    CUIIO 966470: CAEM2=H5210, CAEM_ACT=4621 (secțiunea G), venituri ~68.156,8.
+  ATENTIE: pentru a afirma definitiv că interogarea a folosit CAEM inițial și nu actualizat,
+  trebuie confirmat că ASA Excel CAEM_ACT corespunde exact D.COL31 pentru ID_MD=61832
+  din CIS2.VW_DATA_ALL_COEF, și că exportul este din aceeași versiune a datelor cu tabelul.
+
+4. DIFERENTE PE SECTIUNI, TABEL MINUS SUMA EXCEL CU CAEM2 DE BAZA
+Sectie   unitati      salariati     venituri (in unitatile raportului)
+B             0,0            0,0                0,0
+C             0,0            0,6                0,6
+D             0,0            0,0               -0,2
+E             0,4            0,3                0,0
+F             0,7            0,2                0,7
+G             1,6            0,9                1,8
+H             0,9            0,6               -0,1
+I             0,1           -0,1                0,0
+J             1,8            0,9                0,7
+K             0,3            0,1                0,2
+L            -1,9           -0,4               -0,1
+M             4,4            3,4                0,6
+N            -0,1           -0,1                0,2
+P            -0,1            0,0               -0,1
+Q            -0,3            0,0               -0,1
+R             0,0            0,0                0,1
+S            -1,2           -0,1                0,5
+
+5. CE TREBUIE VERIFICAT PENTRU ACCEPTAREA TAB.27.2
+  A. Reexecutarea SELECT-ului SQL 1 in baza CIS2 cu exact aceeasi PERIOADA,
+     FORM=64, FORM_VERS, COD_CUATM, ID_MDTABLE ca in tabelul exportat.
+  B. Compararea count CUIIO si SUM CD, SUM R400 C2, SUM R150 C1
+     inainte si dupa HAVING.
+  C. Compararea CAEM_FINAL din SQL cu CAEM_ACT din Excel la CUIIO
+     277954 si 966470; verificarea apartenentei la sectiunile finale.
+  D. Confirmarea daca Excel si TABLE_OUT sunt generate din acelasi snapshot
+     si aceeași versiune a coeficientilor.
+  E. Confirmarea metodologiei: Top 5/20 global sau Top 5/20 separat pe CAEM2.
+  F. Nu rulați blocul UPDATE procentual daca procentele au fost calculate deja in SELECT.
+
+LIMITARE: arhiva Excel nu conține separat istoricul complet RENIM, VW_CL_CAEM2,
+VW_DATA_ALL_COEF cu toate câmpurile SQL (inclusiv ID_MD) si parametrii de execuție.
+Prin urmare verificarea reproduce sumele si clasamentul din export, dar nu poate
+demonstra identitatea rezultatelor cu executia reala a interogarii Oracle.
