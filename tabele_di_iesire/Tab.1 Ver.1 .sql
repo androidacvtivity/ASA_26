@@ -1,3 +1,5 @@
+
+Tab.1 Ver.1 .sql
 -- https://github.com/androidacvtivity/ASA_26/tree/main
 -- trebuie da adaugat o conditia - gruparile raman cum sunt 
 
@@ -136,25 +138,25 @@ CALC AS (
     FROM CALC_VP P
 ),
 SECTII AS (
-    SELECT '01' AS NR_SECTIE, 'Întreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
-    UNION ALL SELECT '02', 'Întreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
-    UNION ALL SELECT '03', 'Întreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
-    UNION ALL SELECT '04', 'Întreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
+    SELECT '01' AS NR_SECTIE, 'ï¿½ntreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
+    UNION ALL SELECT '02', 'ï¿½ntreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
+    UNION ALL SELECT '03', 'ï¿½ntreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
+    UNION ALL SELECT '04', 'ï¿½ntreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
     UNION ALL SELECT '05', 'Total republica Moldova', 0, 99999999 FROM DUAL
 ),
 INDICATORI AS (
     SELECT 1 AS ORD, '600' AS COD, '1' AS NR_COL, 'Valoarea productiei: VP' AS NUME_ROW FROM DUAL
     UNION ALL SELECT 2, '700', '1', 'Valoarea adaugata bruta la costul factorilor: VAFC' FROM DUAL
-    UNION ALL SELECT 3, '100', '1', 'Venituri din vânzarea produselor' FROM DUAL
-    UNION ALL SELECT 4, '110', '1', 'Venituri din vânzarea marfurilor' FROM DUAL
+    UNION ALL SELECT 3, '100', '1', 'Venituri din vï¿½nzarea produselor' FROM DUAL
+    UNION ALL SELECT 4, '110', '1', 'Venituri din vï¿½nzarea marfurilor' FROM DUAL
     UNION ALL SELECT 5, '111', '1', 'inclusiv: cu amanuntul' FROM DUAL
     UNION ALL SELECT 6, '112', '1', 'cu ridicata' FROM DUAL
-    UNION ALL SELECT 7, '121', '1', 'inclusiv: prestate întreprinderilor' FROM DUAL
+    UNION ALL SELECT 7, '121', '1', 'inclusiv: prestate ï¿½ntreprinderilor' FROM DUAL
     UNION ALL SELECT 8, '122', '1', 'prestate populatiei' FROM DUAL
     UNION ALL SELECT 9, '130', '1', 'Venituri din contracte de constructii' FROM DUAL
     UNION ALL SELECT 10, '140', '1', 'Venituri din contracte de leasing operational si financiar (arenda, locatiune)' FROM DUAL
-    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din vânzari), fara TVA si accize – total (rd.100+110+120+130+140)' FROM DUAL
-    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din vânzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
+    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din vï¿½nzari), fara TVA si accize ï¿½ total (rd.100+110+120+130+140)' FROM DUAL
+    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din vï¿½nzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
     UNION ALL SELECT 13, '160', '1', 'Alte venituri din activitatea operationala' FROM DUAL
     UNION ALL SELECT 14, '180', '1', 'Subventii - total' FROM DUAL
     UNION ALL SELECT 15, '500', '1', 'TOTAL' FROM DUAL
