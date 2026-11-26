@@ -120,27 +120,29 @@ CALC AS (
     FROM CALC_VP P
 ),
 SECTII AS (
-    SELECT '01' AS NR_SECTIE, 'Œntreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
-    UNION ALL SELECT '02', 'Œntreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
-    UNION ALL SELECT '03', 'Œntreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
-    UNION ALL SELECT '04', 'Œntreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
+    SELECT '01' AS NR_SECTIE, '√éntreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
+    UNION ALL SELECT '02', '√éntreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
+    UNION ALL SELECT '03', '√éntreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
+    UNION ALL SELECT '04', '√éntreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
     UNION ALL SELECT '05', 'Total republica Moldova', 0, 99999999 FROM DUAL
 ),
 INDICATORI AS (
     -- ORD pastreaza ordinea indicatorilor cu date din cele 5 foi Excel.
     -- Capitolul 1124 are DOAR Col.1. Nu generam randuri Col.2/Col.3.
-    SELECT  1 AS ORD, '600' AS COD, '1' AS NR_COL, 'Valoarea productiei: VP' AS NUME_ROW FROM DUAL
+    -- Randul 01 (fara coeficienti) = COUNT(DISTINCT CUIIO), nu SUM(CD).
+    SELECT  0 AS ORD, '01' AS COD, '1' AS NR_COL, 'Numarul intreprinderilor total' AS NUME_ROW FROM DUAL
+    UNION ALL SELECT  1 AS ORD, '600' AS COD, '1' AS NR_COL, 'Valoarea productiei: VP' AS NUME_ROW FROM DUAL
     UNION ALL SELECT  2, '700', '1', 'Valoarea adaugata bruta la costul factorilor: VAFC' FROM DUAL
-    UNION ALL SELECT  3, '100', '1', 'Venituri din v‚nzarea produselor' FROM DUAL
-    UNION ALL SELECT  4, '110', '1', 'Venituri din v‚nzarea marfurilor' FROM DUAL
+    UNION ALL SELECT  3, '100', '1', 'Venituri din v√¢nzarea produselor' FROM DUAL
+    UNION ALL SELECT  4, '110', '1', 'Venituri din v√¢nzarea marfurilor' FROM DUAL
     UNION ALL SELECT  5, '111', '1', 'inclusiv: cu amanuntul' FROM DUAL
     UNION ALL SELECT  6, '112', '1', 'cu ridicata' FROM DUAL
-    UNION ALL SELECT  7, '121', '1', 'inclusiv: prestate Óntreprinderilor' FROM DUAL
+    UNION ALL SELECT  7, '121', '1', 'inclusiv: prestate √Æntreprinderilor' FROM DUAL
     UNION ALL SELECT  8, '122', '1', 'prestate populatiei' FROM DUAL
     UNION ALL SELECT  9, '130', '1', 'Venituri din contracte de constructii' FROM DUAL
     UNION ALL SELECT 10, '140', '1', 'Venituri din contracte de leasing operational si financiar (arenda, locatiune)' FROM DUAL
-    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din v‚nzari), fara TVA si accize ñ total (rd.100+110+120+130+140)' FROM DUAL
-    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din v‚nzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
+    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din v√¢nzari), fara TVA si accize ‚Äì total (rd.100+110+120+130+140)' FROM DUAL
+    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din v√¢nzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
     UNION ALL SELECT 13, '160', '1', 'Alte venituri din activitatea operationala' FROM DUAL
     UNION ALL SELECT 14, '180', '1', 'Subventii - total' FROM DUAL
     UNION ALL SELECT 15, '500', '1', 'TOTAL' FROM DUAL
@@ -158,6 +160,7 @@ DATE_PE_RANDURI AS (
         I.COD,
         I.NR_COL,
         I.NUME_ROW,
+        D.CUIIO,
         D.CFP,
         CASE I.COD || '.' || I.NR_COL
             WHEN '600.1' THEN D.R600
@@ -200,7 +203,9 @@ SELECT
     '0' AS NUME_SECTIE1,
     '0' AS NR_SECTIE2,
     '0' AS NUME_SECTIE2,
-    CASE WHEN X.COD IN ('600','700')
+    CASE WHEN X.COD = '01'
+         THEN '01~' || X.NR_SECTIE
+         WHEN X.COD IN ('600','700')
          THEN X.COD || '.' || X.NR_SECTIE
          ELSE X.COD || ', Col.' || X.NR_COL || '~' || X.NR_SECTIE || '.' || X.NR_COL END AS NR_ROW,
     TO_NUMBER(X.NR_SECTIE) * 1000 + X.ORD AS ORDINE,
@@ -208,12 +213,24 @@ SELECT
          ELSE '100000' END AS DECIMAL_POS,
     X.NUME_ROW AS NUME_ROW,
 
-    ROUND(SUM(X.VALOARE), 1) AS COL1, -- TOTAL, TOATE CFP (pastreaza zecimala R150_C1)
-    ROUND(SUM(CASE WHEN X.CFP IN ('11','12','13') THEN X.VALOARE END), 0) AS COL2, -- proprietate publica
-    ROUND(SUM(CASE WHEN X.CFP IN ('14','15','16','17','18','19') THEN X.VALOARE END), 0) AS COL3, -- privata
-    ROUND(SUM(CASE WHEN X.CFP IN ('20','21') THEN X.VALOARE END), 0) AS COL4, -- mixta publica+privata
-    ROUND(SUM(CASE WHEN X.CFP IN ('22','23','24','25','26','27') THEN X.VALOARE END), 0) AS COL5, -- straina
-    ROUND(SUM(CASE WHEN X.CFP = '28' THEN X.VALOARE END), 0) AS COL6  -- mixta RM+straina
+    -- Rand 01: unitati DISTINCTE; celelalte randuri pastreaza formulele existente.
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT X.CUIIO)
+         ELSE ROUND(SUM(X.VALOARE), 1) END AS COL1, -- TOTAL, toate CFP
+
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT CASE WHEN X.CFP IN ('11','12','13') THEN X.CUIIO END)
+         ELSE ROUND(SUM(CASE WHEN X.CFP IN ('11','12','13') THEN X.VALOARE END), 0) END AS COL2, -- proprietate publica
+
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT CASE WHEN X.CFP IN ('14','15','16','17','18','19') THEN X.CUIIO END)
+         ELSE ROUND(SUM(CASE WHEN X.CFP IN ('14','15','16','17','18','19') THEN X.VALOARE END), 0) END AS COL3, -- privata
+
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT CASE WHEN X.CFP IN ('20','21') THEN X.CUIIO END)
+         ELSE ROUND(SUM(CASE WHEN X.CFP IN ('20','21') THEN X.VALOARE END), 0) END AS COL4, -- mixta publica+privata
+
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT CASE WHEN X.CFP IN ('22','23','24','25','26','27') THEN X.CUIIO END)
+         ELSE ROUND(SUM(CASE WHEN X.CFP IN ('22','23','24','25','26','27') THEN X.VALOARE END), 0) END AS COL5, -- straina
+
+    CASE WHEN X.COD = '01' THEN COUNT(DISTINCT CASE WHEN X.CFP = '28' THEN X.CUIIO END)
+         ELSE ROUND(SUM(CASE WHEN X.CFP = '28' THEN X.VALOARE END), 0) END AS COL6 -- mixta RM+straina
 
 FROM DATE_PE_RANDURI X
 GROUP BY X.NR_SECTIE, X.NUME_SECTIE, X.ORD, X.COD, X.NR_COL, X.NUME_ROW
