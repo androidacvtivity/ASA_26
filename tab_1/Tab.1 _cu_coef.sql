@@ -122,27 +122,30 @@ CALC AS (
     FROM CALC_VP P
 ),
 SECTII AS (
-    SELECT '01' AS NR_SECTIE, 'Œntreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
-    UNION ALL SELECT '02', 'Œntreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
-    UNION ALL SELECT '03', 'Œntreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
-    UNION ALL SELECT '04', 'Œntreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
+    SELECT '01' AS NR_SECTIE, '√éntreprinderile cu numarul de salariati 0-9 persoane' AS NUME_SECTIE, 0 AS PERS_FROM, 9 AS PERS_TO FROM DUAL
+    UNION ALL SELECT '02', '√éntreprinderile cu numarul de salariati 0-49 persoane', 0, 49 FROM DUAL
+    UNION ALL SELECT '03', '√éntreprinderile cu numarul de salariati 0-249 persoane', 0, 249 FROM DUAL
+    UNION ALL SELECT '04', '√éntreprinderile cu numarul de salariati 250 si mai mult persoane', 250, 99999999 FROM DUAL
     UNION ALL SELECT '05', 'Total republica Moldova', 0, 99999999 FROM DUAL
 ),
 INDICATORI AS (
     -- ORD pastreaza ordinea indicatorilor cu date din cele 5 foi Excel.
     -- Capitolul 1124 are DOAR Col.1. Nu generam randuri Col.2/Col.3.
-    SELECT  1 AS ORD, '600' AS COD, '1' AS NR_COL, 'Valoarea productiei: VP' AS NUME_ROW FROM DUAL
+    -- Rindul 01 din versiunea veche: numarul ponderat al intreprinderilor = SUM(CD).
+    -- ORD=0 il plaseaza primul in fiecare sectie, fara schimbarea ordinii celorlalti indicatori.
+    SELECT  0 AS ORD, '01' AS COD, '1' AS NR_COL, 'Numarul intreprinderilor total' AS NUME_ROW FROM DUAL
+    UNION ALL SELECT  1 AS ORD, '600' AS COD, '1' AS NR_COL, 'Valoarea productiei: VP' AS NUME_ROW FROM DUAL
     UNION ALL SELECT  2, '700', '1', 'Valoarea adaugata bruta la costul factorilor: VAFC' FROM DUAL
-    UNION ALL SELECT  3, '100', '1', 'Venituri din v‚nzarea produselor' FROM DUAL
-    UNION ALL SELECT  4, '110', '1', 'Venituri din v‚nzarea marfurilor' FROM DUAL
+    UNION ALL SELECT  3, '100', '1', 'Venituri din v√¢nzarea produselor' FROM DUAL
+    UNION ALL SELECT  4, '110', '1', 'Venituri din v√¢nzarea marfurilor' FROM DUAL
     UNION ALL SELECT  5, '111', '1', 'inclusiv: cu amanuntul' FROM DUAL
     UNION ALL SELECT  6, '112', '1', 'cu ridicata' FROM DUAL
-    UNION ALL SELECT  7, '121', '1', 'inclusiv: prestate Óntreprinderilor' FROM DUAL
+    UNION ALL SELECT  7, '121', '1', 'inclusiv: prestate √Æntreprinderilor' FROM DUAL
     UNION ALL SELECT  8, '122', '1', 'prestate populatiei' FROM DUAL
     UNION ALL SELECT  9, '130', '1', 'Venituri din contracte de constructii' FROM DUAL
     UNION ALL SELECT 10, '140', '1', 'Venituri din contracte de leasing operational si financiar (arenda, locatiune)' FROM DUAL
-    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din v‚nzari), fara TVA si accize ñ total (rd.100+110+120+130+140)' FROM DUAL
-    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din v‚nzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
+    UNION ALL SELECT 11, '150', '1', 'Cifra de afaceri (venitul din v√¢nzari), fara TVA si accize ‚Äì total (rd.100+110+120+130+140)' FROM DUAL
+    UNION ALL SELECT 12, '151', '1', 'din rd. 150: Venituri din v√¢nzarea apartamentelor noi si caselor particulare noi populatiei' FROM DUAL
     UNION ALL SELECT 13, '160', '1', 'Alte venituri din activitatea operationala' FROM DUAL
     UNION ALL SELECT 14, '180', '1', 'Subventii - total' FROM DUAL
     UNION ALL SELECT 15, '500', '1', 'TOTAL' FROM DUAL
@@ -162,6 +165,7 @@ DATE_PE_RANDURI AS (
         I.NUME_ROW,
         D.CFP,
         CASE I.COD || '.' || I.NR_COL
+            WHEN '01.1' THEN D.CD  -- CAPITOL=100, RIND='CD', COL1 din VW_DATA_ALL_COEF
             WHEN '600.1' THEN D.R600
             WHEN '700.1' THEN D.R700
             WHEN '100.1' THEN D.R100_C1
@@ -202,7 +206,9 @@ SELECT
     '0' AS NUME_SECTIE1,
     '0' AS NR_SECTIE2,
     '0' AS NUME_SECTIE2,
-    CASE WHEN X.COD IN ('600','700')
+    CASE WHEN X.COD = '01'
+         THEN '01~' || X.NR_SECTIE  -- codul original al rindului 01 din versiunea veche
+         WHEN X.COD IN ('600','700')
          THEN X.COD || '.' || X.NR_SECTIE
          ELSE X.COD || ', Col.' || X.NR_COL || '~' || X.NR_SECTIE || '.' || X.NR_COL END AS NR_ROW,
     TO_NUMBER(X.NR_SECTIE) * 1000 + X.ORD AS ORDINE,
