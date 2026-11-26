@@ -15,12 +15,13 @@ INSERT INTO CIS2.TABLE_OUT
   ORDINE,
   DECIMAL_POS,
   NUME_ROW,  
- COL1, COL2, COL3,COL4,COL5, COL6, COL7, COL8, COL9, COL10, COL11,COL12, COL13, COL14, COL15, COL16, COL17, COL18,COL19
+ COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10, COL11, COL12, COL13, COL14, COL15
  )
  
 
--- Tab.20.2: doar CAEM2 PRINCIPAL K, P, Q, R este exclus (randuri).
--- Coloanele de activitate K, P, Q, R raman incluse in COL11, COL15, COL16, COL17.
+-- Tab.20.2: CAEM2 PRINCIPAL K/P/Q/R exclus din randuri.
+-- Activitatile K/P/Q/R se insumeaza in COL15 (ALTELE), nu se exclud din valori.
+-- Adunam dupa rotunjirea pe intreprindere pentru a pastra totalurile originale.
 WITH CAEM_MAP AS (
     -- Calculul ierarhiei CAEM2 se face o singura data (nu pentru fiecare CUIIO).
     -- Fara DISTINCT: se pastreaza multiplicitatea join-ului original.
@@ -111,8 +112,8 @@ SELECT
 '0' AS NUME_SECTIE2,
 CODUL  AS NR_ROW,
 ROWNUM  AS ORDINE,
-'2222222222222222222' AS DECIMAL_POS,
-DENUMIRE AS NUME_ROW, COL1, COL2, COL3,COL4,COL5, COL6, COL7, COL8, COL9, COL10, COL11,COL12, COL13, COL14, COL15, COL16, COL17, COL18,COL19
+'222222222222222' AS DECIMAL_POS,
+DENUMIRE AS NUME_ROW, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10, COL11, COL12, COL13, COL14, COL15
 FROM (
 SELECT 
  
@@ -120,18 +121,21 @@ SELECT
    CASE WHEN  Substr(CC.CODUL,1,1)||'0000' IS NOT NULL THEN Substr(CC.CODUL,1,1)||'0000' END AS CODUL, 
    CC.FULL_CODE AS ORDINE,
    NVAL(SUM(D.TOTAL_CAEM)) AS COL1,
-   NVAL(SUM(D.B)) AS COL2,   NVAL(SUM(D.C)) AS COL3,    NVAL(SUM(D.D)) AS COL4,  NVAL(SUM(D.E)) AS COL5,  NVAL(SUM(D.F)) AS COL6,
-   NVAL(SUM(D.G)) AS COL7,   NVAL(SUM(D.H)) AS COL8,    NVAL(SUM(D.I)) AS COL9,  
+   NVAL(SUM(D.B)) AS COL2,
+   NVAL(SUM(D.C)) AS COL3,
+   NVAL(SUM(D.D)) AS COL4,
+   NVAL(SUM(D.E)) AS COL5,
+   NVAL(SUM(D.F)) AS COL6,
+   NVAL(SUM(D.G)) AS COL7,
+   NVAL(SUM(D.H)) AS COL8,
+   NVAL(SUM(D.I)) AS COL9,
    NVAL(SUM(D.J)) AS COL10,
-   NVAL(SUM(D.K)) AS COL11, 
-   NVAL(SUM(D.L)) AS COL12,  
-   NVAL(SUM(D.M)) AS COL13,  
-   NVAL(SUM(D.N)) AS COL14,   
-   NVAL(SUM(D.P)) AS COL15, 
-   NVAL(SUM(D.Q)) AS COL16, 
-   NVAL(SUM(D.R)) AS COL17,  
-   NVAL(SUM(D.S)) AS COL18,  
-   NVAL(SUM(D.ALTELE)) AS COL19
+   NVAL(SUM(D.L)) AS COL11,
+   NVAL(SUM(D.M)) AS COL12,
+   NVAL(SUM(D.N)) AS COL13,
+   NVAL(SUM(D.S)) AS COL14,
+   -- ALTELE = Altele initiale + K + P + Q + R; fiecare valoare deja rotunjita la o zecimala pe intreprindere.
+   NVAL(SUM(NVL(D.ALTELE,0) + NVL(D.K,0) + NVL(D.P,0) + NVL(D.Q,0) + NVL(D.R,0))) AS COL15
  FROM
 (
 SELECT 
