@@ -1,5 +1,9 @@
 https://github.com/androidacvtivity/ASA_26
 in mapa tab_1 este 
-Tab.20.1 (s).sql - participa dupa  caem2  actualizat ca si in tab.19.sql -  Tab.20.1 (s).sql  se poate de optimiazat cum va ca s creieze mai repede 
+
+Tab.20.2 (s).sql
+Tab.20.2 (s).html
+
+K,Q,P,R sunt excluse si de pe verticala si de pe orizontala
 
 
