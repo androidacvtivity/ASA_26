@@ -1,0 +1,36 @@
+-- VERIFICARE ECHIVALENTA: Tab.20.1 (s).sql vs. varianta optimizata
+-- Oracle 11g; SELECT-only, nu modifica datele.
+--
+-- In mediul de TEST rulati cele doua INSERT-uri cu aceeasi perioada/form/versiune/CUATM,
+-- dar cu ID_MDTABLE distincte si fara date preexistente pentru aceste ID-uri.
+-- :pID_MDTABLE_VECHI  - rezultatele "Tab.20.1 (s).sql"
+-- :pID_MDTABLE_OPT    - rezultatele "Tab.20.1_s_OPTIMIZAT_CAEM2_Oracle11g.sql"
+--
+-- Atentie: criteriul HAVING din Tab.19 (s) M.sql NU exista in Tab.20.1 initial;
+-- optimizarea il lasa neschimbat, altfel populatia de intreprinderi s-ar modifica.
+--
+-- Rezultat corect: DIF_VECHI_OPT = 0, DIF_OPT_VECHI = 0 si
+-- RANDURI_VECHI = RANDURI_OPT. Comparatia include COL1 ... COL19.
+WITH VECHI AS (
+    SELECT NR_SECTIE, NUME_SECTIE, NR_SECTIE1, NUME_SECTIE1, NR_SECTIE2, NUME_SECTIE2, NR_ROW, ORDINE, DECIMAL_POS, NUME_ROW, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10, COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19
+    FROM CIS2.TABLE_OUT
+    WHERE PERIOADA = :pPERIOADA
+      AND FORM = :pFORM
+      AND FORM_VERS = :pFORM_VERS
+      AND COD_CUATM = :pCOD_CUATM
+      AND ID_MDTABLE = :pID_MDTABLE_VECHI
+),
+OPT AS (
+    SELECT NR_SECTIE, NUME_SECTIE, NR_SECTIE1, NUME_SECTIE1, NR_SECTIE2, NUME_SECTIE2, NR_ROW, ORDINE, DECIMAL_POS, NUME_ROW, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10, COL11, COL12, COL13, COL14, COL15, COL16, COL17, COL18, COL19
+    FROM CIS2.TABLE_OUT
+    WHERE PERIOADA = :pPERIOADA
+      AND FORM = :pFORM
+      AND FORM_VERS = :pFORM_VERS
+      AND COD_CUATM = :pCOD_CUATM
+      AND ID_MDTABLE = :pID_MDTABLE_OPT
+)
+SELECT (SELECT COUNT(*) FROM VECHI) AS RANDURI_VECHI,
+       (SELECT COUNT(*) FROM OPT) AS RANDURI_OPT,
+       (SELECT COUNT(*) FROM (SELECT * FROM VECHI MINUS SELECT * FROM OPT)) AS DIF_VECHI_OPT,
+       (SELECT COUNT(*) FROM (SELECT * FROM OPT MINUS SELECT * FROM VECHI)) AS DIF_OPT_VECHI
+FROM DUAL;
