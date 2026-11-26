@@ -1,5 +1,5 @@
 https://github.com/androidacvtivity/ASA_26
 in mapa tab_1 este 
-Tab.1 (s) Ver.1 M.sql - Modifica tabelul -  adauga randul  01 dupa cum  am mai facut 
-el trebuie sa se calculeze cum se calculeaza in Tab.19 (s)  M.sql r 01 - dar pe cfp pe total trebuie sa fie 52449.7 
-baza o ai in repozitoriu 	
+Tab.20.1 (s).sql - participa dupa  caem2  actualizat ca si in tab.19.sql -  Tab.20.1 (s).sql  se poate de optimiazat cum va ca s creieze mai repede 
+
+
