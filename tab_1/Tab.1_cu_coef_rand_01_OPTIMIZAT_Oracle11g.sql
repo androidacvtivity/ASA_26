@@ -110,7 +110,7 @@ PRIM AS (
         ON S.CUIIO = P.CUIIO
        AND S.FORM = :pFORM
        AND S.PERIOADA = :pPERIOADA
-)
+),
 CALC_VP AS (
     SELECT P.*,
            -- VP = 150 + 160 + 170 - 200 + (330 C2-C1) + (340 C2-C1)
