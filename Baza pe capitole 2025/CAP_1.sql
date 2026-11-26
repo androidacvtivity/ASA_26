@@ -55,33 +55,78 @@ FROM
     CIS2.VW_DATA_ALL D
 INNER JOIN
     CIS2.RENIM R ON R.CUIIO = D.CUIIO AND R.CUIIO_VERS = D.CUIIO_VERS
+    INNER JOIN (
+    SELECT
+CODUL, 
+DENUMIRE, 
+GRUPA, 
+ORDINE, 
+FULL_CODE, 
+NUM_CODE, 
+PRIM                
+                FROM  CIS2.VW_CL_CAEM2
+                
+               
+                
+                WHERE 
+                
+                
+(
+                CODUL LIKE 'C%'
+                OR CODUL LIKE 'B%'
+                OR CODUL LIKE 'D%'
+                OR CODUL LIKE 'E%'
+                OR CODUL LIKE 'F%'
+                OR CODUL LIKE 'G%'
+                OR CODUL LIKE 'H%'
+                OR CODUL LIKE 'I%'
+                OR CODUL LIKE 'K%'
+                OR CODUL LIKE 'J%'
+                OR CODUL LIKE 'L%'
+                OR CODUL LIKE 'M%'
+                OR CODUL LIKE 'Q%'
+                OR CODUL LIKE 'P%'
+                OR CODUL LIKE 'N%'
+                OR CODUL LIKE 'R%'
+                OR CODUL LIKE 'S%'
+                )
+                
+                AND 
+                
+                SUBSTR(CODUL,1,3) NOT IN ('S94','K65')
+                AND 
+                CODUL NOT IN ('K6419','K6411')
+                
+                
+                
+    ) C ON SUBSTR(C.CODUL,2,4)  = DD.CAEM_FINAL
 WHERE
     D.FORM IN (64)
     AND D.PERIOADA = :pPERIOADA
    -- AND D.CUATM_FULL LIKE '%' || :pCOD_CUATM || ';%'
     AND D.CAPITOL IN (1124, 1129, 100)
-    AND D.CUIIO IN (
-        SELECT 
-DISTINCT D.CUIIO 
-FROM CIS2.DATA_ALL D
-
- WHERE (D.PERIOADA = :pPERIOADA)
-            
-              AND D.FORM IN (64)
-              AND D.FORM_VERS IN (2000)
-              AND D.ID_MD IN (62382,114171,62413)
-              
-              
-              GROUP BY 
-              D.CUIIO
-
- HAVING (
-           SUM(CASE WHEN D.ID_MD = 62382 AND D.COL1 IS NOT NULL
-                    THEN D.COL1 ELSE 0 END) = 1
-        OR SUM(CASE WHEN D.ID_MD IN (114171, 62413) AND D.COL1 IS NOT NULL
-                    THEN D.COL1 ELSE 0 END) > 0
-    )
-    )
+--    AND D.CUIIO IN (
+--        SELECT 
+--DISTINCT D.CUIIO 
+--FROM CIS2.DATA_ALL D
+--
+-- WHERE (D.PERIOADA = :pPERIOADA)
+--            
+--              AND D.FORM IN (64)
+--              AND D.FORM_VERS IN (2000)
+--              AND D.ID_MD IN (62382,114171,62413)
+--              
+--              
+--              GROUP BY 
+--              D.CUIIO
+--
+-- HAVING (
+--           SUM(CASE WHEN D.ID_MD = 62382 AND D.COL1 IS NOT NULL
+--                    THEN D.COL1 ELSE 0 END) = 1
+--        OR SUM(CASE WHEN D.ID_MD IN (114171, 62413) AND D.COL1 IS NOT NULL
+--                    THEN D.COL1 ELSE 0 END) > 0
+--    )
+--    )
 GROUP BY
     D.ANUL,
     D.CUIIO,
@@ -91,5 +136,12 @@ GROUP BY
     R.CFP,
     R.CFOJ,
     R.CAEM2
+    
+    HAVING (
+           SUM(CASE WHEN D.ID_MD = 62382 AND D.COL1 IS NOT NULL
+                    THEN D.COL1 ELSE 0 END) = 1
+        OR SUM(CASE WHEN D.ID_MD IN (114171, 62413) AND D.COL1 IS NOT NULL
+                    THEN D.COL1 ELSE 0 END) > 0
+    )
 ORDER BY
     D.CUIIO;

@@ -1,0 +1,2 @@
+in mapa tab_1 este tabele Tab.1  (s)  ver_old.1.sql - versiune veche  noi am modificat-o in Tab.1 _cu_coef.sql -  am exlus primele 8 randuri 
+Acum trebuie de adaugat inapoi primul rand doar - randul 01 - sa fie primul in tab Tab.1 _cu_coef.sql - in history in github vei vedea - ce nu intalegi intreaba  

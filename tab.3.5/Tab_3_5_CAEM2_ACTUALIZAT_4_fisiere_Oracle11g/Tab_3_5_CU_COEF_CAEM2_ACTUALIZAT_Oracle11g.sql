@@ -1,12 +1,4 @@
--- TAB.3.5 / ASA 2025 - CU COEFICIENTI - Oracle 11g
--- Baza: github.com/androidacvtivity/ASA_26/tree/main/tab.3.5
--- Versiune noua: filtru de participare dupa CAEM2 actualizat,
--- conform Tab_1_ASA_2025_FILTRU_CAEM2_ACTUALIZAT_INSERT_Oracle11g.sql.
--- Prioritate ID_MD=61832 / COL31 (CAPITOL=1129); in lipsa RENIM.CAEM2.
--- Se includ doar B,C,D,E,F,G,H,I,J,L,M,N,S; se exclude S94.
--- Formulele, HAVING, gruparea D.CUIIO/D.CFP/D.CFOJ si CFOJ pe coloane
--- raman ca in versiunile din repository.
--- ATENTIE: Acest SQL insereaza in TABLE_OUT; verificati inainte de rerulare.
+
 
 INSERT INTO CIS2.TABLE_OUT 
 (

@@ -1,0 +1,42 @@
+ASA 2025 - Filtru CAEM2 pentru Tab.3.5
+====================================
+
+FISIERE:
+- ASA_2025_Filtru_CAEM2_Tab35.bas : modul VBA de importat in Excel.
+- ASA_2025_Control_CAEM2_Previzualizare.xlsx : lista de control calculata din CAP1 (daca este inclusa in pachet).
+
+PASII DE RULARE:
+1. Dezarhiveaza ASA_CAPITOLE_2025.zip, obtinand ASA_CAPITOLE_2025.xlsx.
+2. Deschide ASA_CAPITOLE_2025.xlsx in Microsoft Excel si salveaza-l pe disc.
+3. Deschide editorul VBA (Alt+F11 in Windows; Tools > Macro > Visual Basic Editor in Excel Mac).
+4. File > Import File... si selecteaza ASA_2025_Filtru_CAEM2_Tab35.bas.
+5. Revino in Excel, activeaza fisierul ASA_CAPITOLE_2025.xlsx si executa macro-ul:
+   Filtreaza_ASA_2025_CAEM2_Tab35
+6. Fisierul nou va fi salvat langa sursa:
+   ASA_CAPITOLE_2025_CAEM2_FILTRAT.xlsx
+   Daca exista deja, macro-ul adauga data si ora, ca sa nu suprascrie rezultatul.
+
+CE FACE:
+- Citeste CUIIO, CAEM2 si CAEM_ACT din foaia CAP1.
+- Prioritizeaza CAEM_ACT; daca lipseste, foloseste CAEM2 initial (codul de 4 cifre).
+- Normalizeaza codurile numerice la 4 cifre (de ex. 811 -> 0811).
+- Include diviziunile CAEM2 rev.2 ale sectiunilor B,C,D,E,F,G,H,I,J,L,M,N,S.
+- Exclude S94, sectiunile K,P,Q,R si toate celelalte neincluse.
+- Aplica aceeasi selectie de CUIIO tuturor celor 14 foi (7 fara coeficienti, 7 cu coeficienti).
+- Pastreaza toate coloanele si valorile originale ale randurilor pastrate, inclusiv RIND_CD.
+- Creeaza foi de audit: CONTROL_CAEM2 si EXCLUSE_CAEM2.
+- Nu modifica fisierul sursa si nu face INSERT/UPDATE in Oracle.
+
+REZULTATUL DE REFERINTA DIN CAP1 (ASA_CAPITOLE_2025.xlsx, 2025):
+- 16.725 CUIIO distincte in sursa
+- 15.387 incluse
+- 1.338 excluse
+
+NOTA METODOLOGICA:
+SQL-ul Tab.3.5 face join cu CIS2.VW_CL_CAEM2, care verifica apartenenta
+codului de 4 cifre la clasificator. Macro-ul transpune aceasta regula prin
+intervalele diviziunilor CAEM2 rev.2 (primele doua cifre) pentru datele din
+export. Daca apar coduri CAEM invalide ce au o diviziune admisa, verificarea
+stricta necesita si lista completa de coduri CIS2.VW_CL_CAEM2.
+Filtrul macro aplica DOAR conditia CAEM2 asupra bazei Excel; nu executa
+recalcularile SQL, HAVING sau verificari ale raportarilor Oracle.
