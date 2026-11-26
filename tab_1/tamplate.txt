@@ -1,3 +1,5 @@
 https://github.com/androidacvtivity/ASA_26
-in mapa tab_1 este tabele Tab.1  (s)  ver_old.1.sql - versiune veche  noi am modificat-o in Tab.1 _cu_coef.sql -  am exlus primele 8 randuri 
-Acum trebuie de adaugat inapoi primul rand doar - randul 01 - sa fie primul in tab Tab.1 _cu_coef.sql - in history in github vei vedea - ce nu intalegi intreaba  
+in mapa tab_1 este 
+Tab.1 (s) Ver.1 M.sql - Modifica tabelul -  adauga randul  01 dupa cum  am mai facut 
+el trebuie sa se calculeze cum se calculeaza in Tab.19 (s)  M.sql r 01 - dar pe cfp pe total trebuie sa fie 52449.7 
+baza o ai in repozitoriu 	
