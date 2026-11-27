@@ -113,7 +113,7 @@ CLASIFICATOR_SECTIUNI AS
         ON C.FULL_CODE LIKE '%' || CC.CODUL || ';%'
        AND CC.CODUL = SUBSTR(C.CODUL, 1, 1) || '0000'
     WHERE SUBSTR(C.CODUL, 1, 1) IN
-          ('B','C','D','E','F','G','H','I','J','K','L','M','N','P','Q','R','S')
+          ('B','C','D','E','F','G','H','I','J','L','M','N','S')
       AND SUBSTR(C.CODUL, 1, 3) NOT IN ('S94', 'K65')
       AND C.CODUL NOT IN ('K6419', 'K6411')
 ),
