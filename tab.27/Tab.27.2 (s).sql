@@ -1,8 +1,3 @@
--- Tab.27.2: exclude activitatea principala CAEM2 actualizata K, P, Q, R.
--- CAEM_FINAL: ID_MD=61832/COL31; fallback CIS2.RENIM.CAEM2.
--- Excluderea se aplica inainte de clasamentul global si de TOTAL.
--- Cele 13 sectiuni B,C,D,E,F,G,H,I,J,L,M,N,S si procentele Top/sectiune raman.
-
 INSERT INTO CIS2.TABLE_OUT
 (
     PERIOADA,
@@ -88,25 +83,7 @@ BAZA AS
                      THEN D.COL1 ELSE 0 END) > 0
         )
 ),
--- 2. Mapare la sectiunea CAEM2, folosind CAEM_FINAL (exclude K/P/Q/R).
--- DISTINCT previne multiplicarea datorata unor inregistrari identice de clasificator.
-CLASIFICATOR_SECTIUNI AS
-(
-    SELECT DISTINCT
-        SUBSTR(C.CODUL, 2, 4) AS CAEM4,
-        CC.CODUL AS CODUL_SECTIUNE,
-        CC.DENUMIRE AS DENUMIRE_SECTIUNE
-    FROM CIS2.VW_CL_CAEM2 C
-    INNER JOIN CIS2.VW_CL_CAEM2 CC
-        ON C.FULL_CODE LIKE '%' || CC.CODUL || ';%'
-       AND CC.CODUL = SUBSTR(C.CODUL, 1, 1) || '0000'
-    WHERE SUBSTR(C.CODUL, 1, 1) IN
-          ('B','C','D','E','F','G','H','I','J','L','M','N','S')
-      AND SUBSTR(C.CODUL, 1, 3) NOT IN ('S94', 'K65')
-      AND C.CODUL NOT IN ('K6419', 'K6411')
-),
--- 3. Rangurile GLOBAL: se calculeaza numai pe intreprinderile cu CAEM2 actualizat inclus.
---    Astfel, K/P/Q/R nu participa nici la total, nici la clasamentele Top 5/20.
+-- 2. Rangurile GLOBAL: se aplica intregului esantion eligibil.
 TOP_GLOBAL AS
 (
     SELECT
@@ -122,13 +99,24 @@ TOP_GLOBAL AS
                      B.CUIIO, B.CUIIO_VERS, B.CUATM
         ) AS R150_GLOBAL
     FROM BAZA B
-    WHERE EXISTS (
-        SELECT 1
-        FROM CLASIFICATOR_SECTIUNI C
-        WHERE C.CAEM4 = B.CAEM_FINAL
-    )
 ),
--- Baza sectiunilor: foloseste exclusiv populatia filtrata din TOP_GLOBAL.
+-- 3. Mapare la sectiunea CAEM2, folosind CAEM_FINAL.
+-- DISTINCT previne multiplicarea datorata unor inregistrari identice de clasificator.
+CLASIFICATOR_SECTIUNI AS
+(
+    SELECT DISTINCT
+        SUBSTR(C.CODUL, 2, 4) AS CAEM4,
+        CC.CODUL AS CODUL_SECTIUNE,
+        CC.DENUMIRE AS DENUMIRE_SECTIUNE
+    FROM CIS2.VW_CL_CAEM2 C
+    INNER JOIN CIS2.VW_CL_CAEM2 CC
+        ON C.FULL_CODE LIKE '%' || CC.CODUL || ';%'
+       AND CC.CODUL = SUBSTR(C.CODUL, 1, 1) || '0000'
+    WHERE SUBSTR(C.CODUL, 1, 1) IN
+          ('B','C','D','E','F','G','H','I','J','K','L','M','N','P','Q','R','S')
+      AND SUBSTR(C.CODUL, 1, 3) NOT IN ('S94', 'K65')
+      AND C.CODUL NOT IN ('K6419', 'K6411')
+),
 BAZA_SECTIUNI AS
 (
     SELECT
@@ -183,8 +171,7 @@ AGREG_SECTIUNI AS
     FROM TOP_SECTIUNI
     GROUP BY CODUL_SECTIUNE
 ),
--- 6. Totaluri si sume Top 5/20 din INTREAGA POPULATIE RAMASA dupa excluderea K/P/Q/R.
---    TOTAL si sectiunile provin din acelasi set de intreprinderi.
+-- 6. Totaluri si sume Top 5/20 DIN INTREGUL ESANTION, nu din sectiuni.
 AGREG_TOTAL AS
 (
     SELECT
