@@ -1,9 +1,6 @@
 https://github.com/androidacvtivity/ASA_26/
 
-in folderul tab.3.5 - sunt 2 tabele cu coef si fara 
-de creat versiune noua pentru fiecar etabel - de adaugat conditia 
-dupa caem2 actualizat care deja  este in 
-Tab_1_ASA_2025_FILTRU_CAEM2_ACTUALIZAT_INSERT_Oracle11g
+in folderul tab.27
+este tabela tab.28.sql
 
-Ce nu este clar intreaba 
-
+acum trebuie de scos -- exclude caem K,Q,P,R, dupa caem acualizat -   noi deja am aplicat aceasta in tabele precedente - vezi in history 
